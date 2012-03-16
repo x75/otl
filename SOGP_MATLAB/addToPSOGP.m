@@ -50,7 +50,7 @@
             Q(end+1, end+1) = 0;
             ehat(end+1) = -1;
             ehat = ehat(:); %make ehat a column vector
-å
+
             Q = Q + (1/gamma)*(ehat*ehat.');
             
             alpha(end+1) = 0;
