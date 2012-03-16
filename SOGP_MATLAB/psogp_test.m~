@@ -1,0 +1,26 @@
+%let's generate some simple test (sine wave)
+clear();
+data = [0:0.01:2*pi].';
+X = data(randperm(size(data,1)));
+Y = sin(X) + normrnd(0,0.01,size(X));
+%plot(X); hold on; plot(Y,'g');
+
+%initialise the PSOGP
+capacity = 100;
+noise = 0.05;
+epsilon = 1e-6;
+kernFunc = @kern_gaussian;
+kernParams = [0.0001 0.9 0.0];
+
+gp_params = [capacity, noise, epsilon];
+psogp = initPSOGP(gp_params, kernFunc, kernParams);
+
+%for each data item, add it to the PSOGP
+for i=1:20 %size(X,1)
+   psogp = addToPSOGP(X(i), Y(i), psogp);
+   [y_pred(i), y_var] = predictPSOGP(X(i), psogp);
+end
+scatter(X(1:size(y_pred,2)), y_pred); hold on;
+scatter(X(1:size(y_pred,2)), Y(1:size(y_pred,2)), 'g+'); hold off;
+
+
