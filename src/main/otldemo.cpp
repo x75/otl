@@ -1,5 +1,5 @@
 /**
-  STORKGP Demo program
+  Online Temporal Learning (OTL) Demo program
   Copyright 2012 Harold Soh
     haroldsoh@imperial.ac.uk
     haroldsoh@gmail.com
