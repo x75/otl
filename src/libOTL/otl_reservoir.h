@@ -1,11 +1,11 @@
 #ifndef OTL_RESERVOIR_H_893201789576921893812908490127348470398
 #define OTL_RESERVOIR_H_893201789576921893812908490127348470398
 
-#include "otl_aug_feature.h"
+#include "otl_aug_state.h"
 
 namespace OTL {
 
-class Reservoir : public AugmentedFeatures {
+class Reservoir : public AugmentedState {
 public:
     //types of activation functions
     //we only support one for now
@@ -20,11 +20,11 @@ public:
 
     }
 
-    virtual void getFeatures(VectorXd &features) {
+    virtual void getState(VectorXd &State) {
 
     }
 
-    virtual void setFeatures(const VectorXd &features) {
+    virtual void setState(const VectorXd &State) {
 
     }
 

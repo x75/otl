@@ -36,7 +36,7 @@
 #include <iostream>
 #include <string>
 #include "otl_exception.h"
-#include "otl_aug_feature.h"
+#include "otl_aug_state.h"
 
 #include "otl_learning_algs.h"
 #include "otl_rls.h"

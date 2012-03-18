@@ -7,7 +7,7 @@ set(SOURCES src/libOTL/otl.h
     src/libOTL/otl_kernels.h
     src/libOTL/otl_learning_algs.h
     src/libOTL/otl_rls.h
-    src/libOTL/otl_aug_feature.h
+    src/libOTL/otl_aug_state.h
     src/libOTL/otl_reservoir.h
     src/libOTL/otl_window.h
     src/libOTL/otl_helpers.h

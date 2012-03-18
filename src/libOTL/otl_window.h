@@ -1,14 +1,14 @@
 #ifndef OTL_WINDOW_3281907590812038290178498638726509842309432
 #define OTL_WINDOW_3281907590812038290178498638726509842309432
 
-#include "otl_aug_feature.h"
+#include "otl_aug_state.h"
 #include "otl_helpers.h"
 #include <fstream>
 #include <exception>
 #include <string>
 
 namespace OTL {
-class Window : public AugmentedFeatures {
+class Window : public AugmentedState {
 public:
 
     /**
@@ -17,43 +17,39 @@ public:
     **/
 
     virtual void update(const VectorXd &input) {
-//        if (initial_sample) {
-//            for (unsigned int i=0; i<this->input_dim; i++) {
-//                state(i) = input(i);
-//            }
-//        } else {
-            //push back all the samples
         VectorXd temp = this->window.segment(0,this->total_window_size - this->input_dim);
-            window.segment(this->input_dim, this->total_window_size-this->input_dim)
-                    = temp;
+        window.segment(this->input_dim, this->total_window_size-this->input_dim) = temp;
 
-            //std::cout << "....\n" << window << "...\n" << std::endl;
-            //add the new one to the front
-            window.segment(0, this->input_dim) = input;
-//        }
-
+        window.segment(0, this->input_dim) = input;
         return;
     }
 
     /**
-        \brief Gets the internal window and puts it into the features parameter
-        \param features where the window gets put into.
+        \brief Returns the size of the augmented state
     **/
-    virtual void getFeatures(VectorXd &features) {
-        features = this->window;
+    virtual unsigned int getStateSize(void) {
+        return this->total_window_size;
+    }
+
+    /**
+        \brief Gets the internal window and puts it into the State parameter
+        \param State where the window gets put into.
+    **/
+    virtual void getState(VectorXd &State) {
+        State = this->window;
         return;
     }
 
     /**
-        \brief Sets the internal window to the parameter features
-        \param features a VectorXd with the features you want to set. Make sure it is the right size.
+        \brief Sets the internal window to the parameter State
+        \param State a VectorXd with the State you want to set. Make sure it is the right size.
     **/
-    virtual void setFeatures(const VectorXd &features) {
-        if (features.rows() != this->total_window_size) {
+    virtual void setState(const VectorXd &State) {
+        if (State.rows() != this->total_window_size) {
             throw OTLException("Sorry, the feature you want to set is not the right length");
         }
-        //set the features
-        this->window = features;
+        //set the State
+        this->window = State;
         return;
     }
 
@@ -66,7 +62,7 @@ public:
     }
 
     /**
-        \brief Saves the window features to a file
+        \brief Saves the window State to a file
         \param filename a string specifying the filename to save to
     **/
     virtual void save(std::string filename) {
