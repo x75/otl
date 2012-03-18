@@ -32,7 +32,13 @@ public:
 
     }
 
+    virtual void save(std::string filename) {
 
+    }
+
+    virtual void load(std::string filename) {
+
+    }
 
     /**
       \brief Sets up the reservoir

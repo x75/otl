@@ -15,6 +15,10 @@ public:
     virtual void train(const VectorXd &input) = 0;
     virtual void predict(VectorXd &prediction, VectorXd &prediction_variance) = 0;
     virtual void reset() = 0;
+
+    virtual void save(std::string filename) = 0;
+    virtual void load(std::string filename) = 0;
+
 };
 
 }

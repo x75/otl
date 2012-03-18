@@ -17,10 +17,39 @@
   **/
 
 #include "otl.h"
+#include "otl_window.h"
+#include <iostream>
+
+using namespace OTL;
+using namespace std;
 
 int main(int argc, char **argv) {
     //some code here
+    Window delay_window;
+    delay_window.init(1,1, 10);
 
+    VectorXd features;
+
+    for (unsigned int i=0; i<5; i++) {
+        VectorXd input(1);
+        input(0) = i;
+        delay_window.update(input);
+    }
+
+    delay_window.getFeatures(features);
+    std::cout << "Features: " << endl;
+    cout << features << endl;
+
+    //save and reload
+    delay_window.save("test_window.data");
+
+    Window test_window;
+    test_window.load("test_window.data");
+    VectorXd loaded_features;
+    delay_window.getFeatures(loaded_features);
+
+    std::cout << "Loaded Features: " << endl;
+    cout << loaded_features << endl;
 
     return 0;
 }
