@@ -3,6 +3,7 @@
 
 #include "otl_exception.h"
 #include "otl_kernel.h"
+#include "otl_helpers.h"
 #include <eigen3/Eigen/Dense>
 #include <string>
 #include <cmath>
@@ -14,6 +15,10 @@ namespace OTL {
 
 class GaussianKernel : public Kernel {
 public:
+
+    GaussianKernel();
+    GaussianKernel(GaussianKernel &rhs);
+
     /**
       \brief initialises the gaussian kernel. Note that this kernel can perform
       ARD.
@@ -28,16 +33,16 @@ public:
         if all the characteristic length scales are equal
 
       **/
-
-    virtual void init(unsigned int state_dim, VectorXd &parameters);
+    virtual void init(const unsigned int state_dim, const VectorXd &parameters);
     virtual void getParameters(VectorXd &parameters);
-    virtual void save(std::string filename);
-    virtual void load(std::string filename);
+    virtual void save(const std::string filename);
+    virtual void load(const std::string filename);
 
-    virtual double eval(VectorXd &x);
-    virtual double eval(VectorXd &x, VectorXd &y);
-    virtual void eval(VectorXd &x, std::vector<VectorXd> &Y,
+    virtual double eval(const VectorXd &x);
+    virtual double eval(const VectorXd &x, const VectorXd &y);
+    virtual void eval(const VectorXd &x, const std::vector<VectorXd> &Y,
                       VectorXd &kern_vals);
+    virtual Kernel* createCopy(void);
 
 private:
     VectorXd parameters;
@@ -49,7 +54,20 @@ private:
     bool initialised;
 };
 
-void GaussianKernel::init(unsigned int state_dim,VectorXd &parameters) {
+
+GaussianKernel::GaussianKernel() {
+    this->initialised = false;
+}
+
+GaussianKernel::GaussianKernel(GaussianKernel &rhs) {
+    this->parameters = rhs.parameters;
+    this->b = rhs.b;
+    this->alpha = rhs.alpha;
+    this->state_dim = rhs.state_dim;
+    this->initialised = rhs.initialised;
+}
+
+void GaussianKernel::init(const unsigned int state_dim, const VectorXd &parameters) {
     if (state_dim == 0) {
         throw OTLException("State dimension must be larger than 0");
     }
@@ -90,26 +108,59 @@ void GaussianKernel::getParameters(VectorXd &parameters) {
     parameters = this->parameters;
 }
 
-void GaussianKernel::save(std::string filename) {
-    //TODO
+void GaussianKernel::save(const std::string filename) {
+    std::ofstream out;
+    try {
+        out.open(filename.c_str());
+    } catch (std::exception &e) {
+        std::string error_msg = "Cannot open ";
+        error_msg += filename + " for writing";
+        throw OTLException(error_msg);
+    }
+
+    saveVectorToStream(out, this->parameters);
+    saveVectorToStream(out, this->b);
+    out << this->alpha << std::endl;
+    out << this->state_dim << std::endl;
+    out << this->initialised << std::endl;
+
+    out.close();
 }
 
-void GaussianKernel::load(std::string filename) {
-    //TODO
+void GaussianKernel::load(const std::string filename) {
+    std::ifstream in;
+    try {
+        in.open(filename.c_str());
+    } catch (std::exception &e) {
+        std::string error_msg = "Cannot open ";
+        error_msg += filename + " for writing";
+        throw OTLException(error_msg);
+    }
+    readVectorFromStream(in, this->parameters);
+    readVectorFromStream(in, this->b);
+    in >> this->alpha;
+    in >> this->state_dim;
+    in >> this->initialised;
+
+    in.close();
 }
 
-double GaussianKernel::eval(VectorXd &x) {
+Kernel* GaussianKernel::createCopy(void) {
+    return (Kernel*) new GaussianKernel(*this);
+}
+
+double GaussianKernel::eval(const VectorXd &x) {
     return this->eval(x,x);
 }
 
-double GaussianKernel::eval(VectorXd &x, VectorXd &y) {
+double GaussianKernel::eval(const VectorXd &x, const VectorXd &y) {
     if (x.rows() != y.rows()) {
         throw OTLException("Hey, GaussianKernel cannot evaluate"
                            "vectors of different sizes");
     }
 
     if (x.rows() != this->state_dim) {
-        throw OTLException("Hey, GaussianKernel says the vector to evaluate"
+        throw OTLException("Hey, GaussianKernel says the vector to evaluate "
                            "has a different size than the initialisation.");
     }
 
@@ -123,7 +174,7 @@ double GaussianKernel::eval(VectorXd &x, VectorXd &y) {
     return kval;
 }
 
-void GaussianKernel::eval(VectorXd &x, std::vector<VectorXd> &Y,
+void GaussianKernel::eval(const VectorXd &x, const std::vector<VectorXd> &Y,
                           VectorXd &kern_vals)
 {
     if (Y.size() == 0) {

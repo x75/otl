@@ -4,10 +4,11 @@
 #include "otl_exception.h"
 #include "otl_learning_algs.h"
 #include "otl_helpers.h"
-#include "otl_kernels.h"
+#include "otl_kernel.h"
 #include <eigen3/Eigen/Dense>
 #include <string>
 #include <fstream>
+#include <vector>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -18,6 +19,7 @@ class SOGP : public LearningAlgorithm {
 public:
     SOGP();
     SOGP(SOGP &rhs);
+    ~SOGP();
 
     virtual void train(const VectorXd &state, const VectorXd &output);
     virtual void predict(const VectorXd &state, VectorXd &prediction, VectorXd &prediction_variance);
@@ -29,13 +31,13 @@ public:
       \brief Initialises the SOGP
       \param state_dim how big is the state that we want to regress from
       \param output_dim how big is the output state
-      \param kernel_params a VectorXd with the kernel parameters
+      \param Kernel an OTL::Kernel object with the kernel you want to use
       \param noise the noise parameter (application dependent)
       \param epsilon threshold parameter (typically small 1e-4)
       \param capacity the capacity of the SOGP (application dependent)
       **/
     virtual void init(unsigned int state_dim, unsigned int output_dim,
-                      VectorXd &kernel_params,
+                      Kernel &kernel,
                       double noise,
                       double epsilon,
                       unsigned int capacity);
@@ -45,8 +47,9 @@ private:
 
     unsigned int state_dim;
     unsigned int output_dim;
+    unsigned int current_size;
 
-    VectorXd kernel_params;
+    Kernel *kernel;
     double epsilon;
     double noise;
     unsigned int capacity;
@@ -54,6 +57,9 @@ private:
     MatrixXd alpha;
     MatrixXd C;
     MatrixXd Q;
+
+    std::vector<VectorXd> basis_vectors;
+
 };
 
 SOGP::SOGP(void) {
@@ -61,20 +67,12 @@ SOGP::SOGP(void) {
 }
 
 SOGP::SOGP(SOGP &rhs) {
-    this->initialized = true; //initialised
+    //TODO
+}
 
-    this->delta = rhs.delta;
-    this->lambda = rhs.lambda;
-    this->noise = rhs.noise;
-
-    this->state_dim = rhs.state_dim;
-    this->output_dim = rhs.output_dim;
-
-    for (unsigned int i=0; i<rhs.output_dim; i++) {
-        this->P_SOGP.push_back(rhs.P_SOGP[i]);
-        this->w_SOGP.push_back(rhs.w_SOGP[i]);
-    }
-
+SOGP::~SOGP() {
+    //TODO
+    delete this->kernel;
 }
 
 void SOGP::train(const VectorXd &state, const VectorXd &output) {
@@ -83,24 +81,87 @@ void SOGP::train(const VectorXd &state, const VectorXd &output) {
         throw OTLException("SOGP not yet initialised");
     }
 
-    //create the noisy input state with a bias
-    VectorXd noisy_input = state + VectorXd::Random(this->state_dim)*this->noise;
-    VectorXd noisy_input_w_bias(this->state_dim + 1);
-    for (unsigned int i=0; i<noisy_input.rows(); i++) noisy_input_w_bias[i] = noisy_input[i];
-    noisy_input_w_bias[this->state_dim] = 1.0; //bias term
-    VectorXd noisy_input_t = noisy_input_w_bias.transpose();
+    double kstar = this->kernel->eval(state);
 
-    //SOGP algorithm
-    double T_inv = 1.0/(noisy_input_t.dot(P_SOGP[0]*noisy_input_w_bias) + this->lambda);
+    //we are just starting.
+    if (this->current_size == 0) {
 
-    VectorXd g = this->P_SOGP[0]*noisy_input_w_bias*T_inv;
-    MatrixXd P_mod = this->P_SOGP[0]*1.0/this->lambda;
+        this->alpha.block(0,0,1, this->output_dim) = output.array() / (kstar + this->noise);
+        this->C.block(0,0,1,1) = VectorXd::Ones(1)*-1/(kstar + this->noise);
+        this->Q.block(0,0,1,1) = VectorXd::Ones(1)*1/(kstar);
+        this->basis_vectors.push_back(state);
+        this->current_size++;
+        return;
+    }
 
-    this->P_SOGP[0] =  P_mod - g*(noisy_input_w_bias.transpose()*P_mod);
+    //Test if this is a "novel" state
+    VectorXd k;
+    this->kernel->eval(state, this->basis_vectors, k);
+    //cache Ck
+    VectorXd Ck = this->C.block(0,0, this->current_size, this->current_size)*k;
 
-    for (unsigned int o=0; o<this->output_dim; o++) {
-        double a = output(o) - this->w_SOGP[o].dot(noisy_input_w_bias);
-        this->w_SOGP[o] = this->w_SOGP[o] + a*g;
+    VectorXd m = this->alpha.block(0,0,this->current_size, this->output_dim).transpose() * k;
+    double s2 = kstar + (k.dot(Ck));
+
+    if (s2 < 1e-12) {
+        s2 = 1e-12;
+    }
+
+    double r = -1.0/(s2 + this->noise);
+    VectorXd q = (output - m)*(-r);
+    VectorXd ehat = this->Q.block(0,0, this->current_size, this->current_size)*k;
+
+    double gamma = kstar - k.dot(ehat);
+    double eta = 1.0/(1.0 + gamma*r);
+
+    if (gamma < 1e-12) {
+        gamma = 0.0;
+    }
+
+    if (gamma >= this->epsilon*kstar) {
+        //perform a full update
+        VectorXd s = Ck;
+        s.conservativeResize(this->current_size + 1);
+        s(this->current_size) = 1;
+
+        //add to basis vectors
+        this->basis_vectors.push_back(state);
+
+        //update Q (inverse of C)
+        ehat.conservativeResize(this->current_size+1);
+        ehat(this->current_size) = -1;
+
+        MatrixXd diffQ = Q.block(0,0,this->current_size+1, this->current_size+1)
+                + (ehat*ehat.transpose())*(1.0/gamma);
+        Q.block(0,0,this->current_size+1, this->current_size+1) = diffQ;
+
+
+        //update alpha
+        MatrixXd diffAlpha = alpha.block(0,0, this->current_size+1, this->output_dim)
+                + (s*q);
+        alpha.block(0,0, this->current_size+1, this->output_dim) = diffAlpha;
+
+        //update C
+        MatrixXd diffC = C.block(0,0, this->current_size+1, this->current_size+1)
+                + (s*s.transpose());
+        C.block(0,0, this->current_size+1, this->current_size+1) = diffC;
+
+        //increment current size
+        this->current_size++;
+
+    } else {
+        //perform a sparse update
+        VectorXd s = Ck + ehat;
+
+        //update alpha
+        MatrixXd diffAlpha = alpha.block(0,0, this->current_size, this->output_dim)
+                + s*(q*eta).transpose();
+        alpha.block(0,0, this->current_size, this->output_dim) = diffAlpha;
+
+        //update C
+        MatrixXd diffC = C.block(0,0, this->current_size, this->current_size) +
+                r*eta*(s*s.transpose());
+        C.block(0,0, this->current_size, this->current_size) = diffC;
     }
 
     return;
@@ -113,98 +174,66 @@ void SOGP::predict(const VectorXd &state, VectorXd &prediction,
         throw OTLException("SOGP not yet initialised");
     }
 
-    //always need a bias term for SOGP
-    VectorXd aug_input = VectorXd::Ones(this->state_dim + 1);
-    aug_input.segment(0,this->state_dim) = state;
+    double kstar = kernel->eval(state,state);
 
-    //allocate memory
-    prediction = VectorXd(this->output_dim);
-    prediction_variance = VectorXd::Zero(this->output_dim);
-
-    //make our predictions
-    for (unsigned int i=0; i<this->output_dim; i++) {
-        prediction(i) = this->w_SOGP[i].dot(aug_input);
+    //check if we not been trained
+    if (this->current_size == 0) {
+        prediction = VectorXd::Zero(this->output_dim);
+        prediction_variance = VectorXd::Ones(this->output_dim)*
+                (kstar + this->noise);
+        return;
     }
+
+    VectorXd k;
+    kernel->eval(state, this->basis_vectors, k);
+    //std::cout << "K: \n" << k << std::endl;
+    //std::cout << "alpha: \n" << this->alpha.block(0,0,this->current_size, this->output_dim) << std::endl;
+
+    prediction = this->alpha.block(0,0,this->current_size, this->output_dim).transpose() * k;
+    prediction_variance = VectorXd::Ones(this->output_dim)*
+            (k.dot(this->C.block(0,0, this->current_size, this->current_size)*k)
+             + kstar + this->noise);
+
     return;
 }
 
 void SOGP::reset() {
-    P_SOGP.clear();
-    w_SOGP.clear();
-
-    for (unsigned int i=0; i<this->output_dim; i++) {
-        MatrixXd P(this->state_dim + 1, this->state_dim +1);
-        P.setIdentity();
-        P = P*1.0/this->delta;
-        this->P_SOGP.push_back(P);
-
-        VectorXd w = MatrixXd::Zero(this->state_dim + 1,1);
-        this->w_SOGP.push_back(w);
-    }
+    //TODO
 
     return;
 }
 
 void SOGP::save(std::string filename) {
     std::ofstream out(filename.c_str());
-    out << this->delta << std::endl;
-    out << this->lambda << std::endl;
-    out << this->noise << std::endl;
-    out << this->state_dim << std::endl;
-    out << this->output_dim << std::endl;
-    out << this->initialized << std::endl;
-    for (unsigned int i=0; i<this->output_dim; i++) {
-        OTL::saveMatrixToStream(out, P_SOGP[i]);
-        OTL::saveVectorToStream(out, w_SOGP[i]);
-    }
-
+    //TODO
     out.close();
 }
 
 void SOGP::load(std::string filename) {
     std::ifstream in(filename.c_str());
-    in >> this->delta;
-    in >> this->lambda;
-    in >> this->noise;
-    in >> this->state_dim;
-    in >> this->output_dim;
-    in >> this->initialized;
 
-    this->P_SOGP.clear();
-    this->w_SOGP.clear();
-
-    MatrixXd P;
-    VectorXd w;
-    for (unsigned int i=0; i<this->output_dim; i++) {
-        OTL::readMatrixFromStream(in, P);
-        OTL::readVectorFromStream(in, w);
-
-        this->P_SOGP.push_back(P);
-        this->w_SOGP.push_back(w);
-    }
-
+        //TODO
     in.close();
 }
 
 
 void SOGP::init(unsigned int state_dim, unsigned int output_dim,
-               double delta, double lambda, double noise) {
+                Kernel &kernel,
+                double noise,
+                double epsilon,
+                unsigned int capacity) {
 
-    this->delta = delta;
-    this->lambda = lambda;
-    this->noise = noise;
+    this->kernel = kernel.createCopy();
     this->state_dim = state_dim;
     this->output_dim = output_dim;
+    this->noise = noise;
+    this->epsilon = epsilon;
+    this->capacity = capacity;
+    this->current_size = 0;
 
-    for (unsigned int i=0; i<this->output_dim; i++) {
-        MatrixXd P(this->state_dim + 1, this->state_dim +1);
-        P.setIdentity();
-        P = P*1.0/this->delta;
-        this->P_SOGP.push_back(P);
-
-        VectorXd w = MatrixXd::Zero(this->state_dim + 1,1);
-        this->w_SOGP.push_back(w);
-    }
+    this->alpha = MatrixXd::Zero(this->capacity, this->output_dim);
+    this->C = MatrixXd::Zero(this->capacity, this->capacity);
+    this->Q = MatrixXd::Zero(this->capacity, this->capacity);
 
     this->initialized = true;
 }

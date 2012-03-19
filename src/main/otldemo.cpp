@@ -17,15 +17,79 @@
   **/
 
 #include "otl.h"
-#include "otl_window.h"
+
 #include "otl_rls.h"
+#include "otl_sogp.h"
+
 #include "otl_reservoir.h"
+#include "otl_window.h"
 #include "otl_kernel_gaussian.h"
+
 #include <iostream>
 #include <cmath>
 
 using namespace OTL;
 using namespace std;
+
+
+void SOGPTest(void) {
+    //let's create our window
+    Window delay_window;
+    delay_window.init(1, 1, 1);
+
+    //Create our gaussian kernel
+    GaussianKernel gk;
+
+    unsigned int state_dim = delay_window.getStateSize();
+    unsigned int output_dim = 1;
+    double noise = 0.0001;
+    double epsilon = 1e-4;
+    unsigned int capacity = 1000;
+
+    VectorXd param(2);
+    double l = 1.0;
+    double alpha = 1.0;
+    param(0) = l;
+    param(1) = alpha;
+
+    gk.init(state_dim, param);
+
+    SOGP sogp;
+    try {
+        sogp.init(state_dim, output_dim, gk, noise, epsilon, capacity);
+
+        //now we loop using a sine wave
+        unsigned int max_itr = 999;
+        VectorXd input(1);
+        VectorXd output(1);
+
+        VectorXd state;
+        VectorXd prediction;
+        VectorXd prediction_variance;
+
+        VectorXd all_input = VectorXd::Random(max_itr)*2*M_PI;
+
+        for (unsigned int i=0; i<max_itr; i++) {
+            input(0) = all_input(i);//sin(i*0.01);
+            output(0) = sin(input(0)*0.01);//sin((i+1)*0.01);
+
+            //update
+            delay_window.update(input);
+
+            //predict
+            delay_window.getState(state);
+            sogp.predict(input, prediction, prediction_variance);
+            double error = (prediction - output).norm();
+            cout << "Error: " << error << endl;
+
+            //train
+            sogp.train(input, output);
+        }
+    } catch (OTLException &e) {
+        e.showError();
+    }
+
+}
 
 void gaussianKernelTest(void) {
 
@@ -54,6 +118,14 @@ void gaussianKernelTest(void) {
             std::cout << "Gaussian Kernel produced a WRONG answer!!! " << std::endl;
         } else {
             std::cout << "Gaussian Kernel produced a RIGHT answer!!! " << std::endl;
+        }
+
+        std::cout << "Copy test" << std::endl;
+        GaussianKernel gk2(gk);
+        if (gk.eval(x,y) - 0.145876 > eps) {
+            std::cout << "Gaussian Kernel copy produced a WRONG answer!!! " << std::endl;
+        } else {
+            std::cout << "Gaussian Kernel copy produced a RIGHT answer!!! " << std::endl;
         }
 
     } catch (OTLException &e) {
@@ -213,13 +285,13 @@ void sinTestWRLS(void) {
     } catch (OTLException &e) {
         e.showError();
     }
-
-
-
-
 }
 
 int main(int argc, char **argv) {
+
+    SOGPTest();
+    return 0;
+
     gaussianKernelTest();
     return 0;
 
