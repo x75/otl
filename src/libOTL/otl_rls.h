@@ -136,7 +136,7 @@ void RLS::save(std::string filename) {
     out << this->noise << std::endl;
     out << this->state_dim << std::endl;
     out << this->output_dim << std::endl;
-
+    out << this->initialized << std::endl;
     for (unsigned int i=0; i<this->output_dim; i++) {
         OTL::saveMatrixToStream(out, P_rls[i]);
         OTL::saveVectorToStream(out, w_rls[i]);
@@ -152,6 +152,7 @@ void RLS::load(std::string filename) {
     in >> this->noise;
     in >> this->state_dim;
     in >> this->output_dim;
+    in >> this->initialized;
 
     this->P_rls.clear();
     this->w_rls.clear();
@@ -166,7 +167,6 @@ void RLS::load(std::string filename) {
         this->w_rls.push_back(w);
     }
 
-    this->initialized = true;
     in.close();
 }
 

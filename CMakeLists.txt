@@ -11,6 +11,7 @@ set(SOURCES src/libOTL/otl.h
     src/libOTL/otl_reservoir.h
     src/libOTL/otl_window.h
     src/libOTL/otl_helpers.h
+    src/libOTL/otl_sogp.h
 )
 add_library(OTL ${SOURCES})
 

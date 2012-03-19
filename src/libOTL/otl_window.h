@@ -76,11 +76,12 @@ public:
             throw OTLException(error_msg);
         }
 
-        out << input_dim << std::endl;
-        out << output_dim << std::endl;
-        out << window_length << std::endl;
-        out << total_window_size << std::endl;
-        saveVectorToStream(out, window);
+        out << this->input_dim << std::endl;
+        out << this->output_dim << std::endl;
+        out << this->window_length << std::endl;
+        out << this->total_window_size << std::endl;
+        out << this->initialized << std::endl;
+        saveVectorToStream(out, this->window);
         out.close();
     }
 
@@ -104,6 +105,7 @@ public:
         in >> this->window_length;
         in >> this->total_window_size;
         readVectorFromStream(in, this->window);
+        in >> this->initialized;
         in.close();
     }
 
@@ -132,7 +134,7 @@ public:
 
         //initialise the window
         this->window = VectorXd::Zero(this->total_window_size);
-
+        this->initialized = true;
         return;
     }
 
@@ -142,6 +144,7 @@ private:
     unsigned int output_dim;
     unsigned int window_length;
     unsigned int total_window_size;
+    bool initialized;
     VectorXd window;
 };
 }

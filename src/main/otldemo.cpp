@@ -19,12 +19,100 @@
 #include "otl.h"
 #include "otl_window.h"
 #include "otl_rls.h"
+#include "otl_reservoir.h"
 #include <iostream>
 #include <cmath>
 
 using namespace OTL;
 using namespace std;
 
+
+void sinTestRLSESN(void) {
+    //let's create our reservoir
+    Reservoir res;
+
+    unsigned int input_dim = 1;
+    unsigned int output_dim = 1;
+    unsigned int res_size = 50;
+    int activation_func = Reservoir::TANH;
+    double input_weight = 1.0;
+    double output_feedback_weight = 0.0;
+    double leak_rate = 0.9;
+    double spectral_radius = 0.99;
+    double connectivity = 0.1;
+    bool use_inputs_in_state = true;
+    int seed = 0;
+
+    res.init(input_dim, output_dim,res_size,
+             input_weight, output_feedback_weight,
+             activation_func,
+             leak_rate, connectivity, spectral_radius,
+             use_inputs_in_state,
+             seed);
+
+    //let's create our learning algorithm
+    unsigned int state_dim = res.getStateSize();
+    double delta = 0.1;
+    double lambda = 0.99;
+    double noise = 1e-12;
+    RLS rls;
+    rls.init(state_dim, 1.0, delta, lambda, noise);
+
+    //now we loop using a sine wave
+    unsigned int max_itr = 2000;
+    VectorXd input(1);
+    VectorXd output(1);
+
+    VectorXd state;
+    VectorXd prediction;
+    VectorXd prediction_variance;
+
+    for (unsigned int i=0; i<max_itr; i++) {
+        input(0) = sin(i*0.01);
+        output(0) = sin((i+1)*0.01);
+
+        //update
+        res.update(input);
+
+        //predict
+        res.getState(state);
+        rls.predict(state, prediction, prediction_variance);
+        double error = (prediction - output).norm();
+        cout << "Error: " << error << endl;
+
+        //train
+        rls.train(state, output);
+    }
+
+    cout << "Testing saving and loading model and reservoir" << std::endl;
+    try {
+        Reservoir res2;
+        res.save("restest.feat");
+        res2.load("restest.feat");
+
+        RLS rls2;
+        rls.save("rlstest.model");
+        rls2.load("rlstest.model");
+
+        for (unsigned int i=max_itr; i<max_itr+50; i++) {
+            input(0) = sin(i*0.01);
+            output(0) = sin((i+1)*0.01);
+
+            //update
+            res2.update(input);
+
+            //predict
+            res2.getState(state);
+            rls2.predict(state, prediction, prediction_variance);
+            double error = (prediction - output).norm();
+            cout << "Error: " << error << endl;
+        }
+
+    } catch (OTLException &e) {
+        e.showError();
+    }
+
+}
 
 void sinTestWRLS(void) {
     //let's create our window
@@ -96,6 +184,9 @@ void sinTestWRLS(void) {
 }
 
 int main(int argc, char **argv) {
+    sinTestRLSESN();
+    return 0;
+
     sinTestWRLS();
     return 0;
     //some code here
