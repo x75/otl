@@ -34,7 +34,7 @@ void sinTestWRLS(void) {
     //let's create our learning algorithm
     unsigned int state_dim = delay_window.getStateSize();
     double delta = 0.1;
-    double lambda = 0.99;
+    double lambda = 0.90;
     double noise = 1e-12;
     RLS rls;
     rls.init(state_dim, 1.0, delta, lambda, noise);
@@ -66,6 +66,33 @@ void sinTestWRLS(void) {
         rls.train(state, output);
     }
 
+    cout << "Testing saving and loading model " << std::endl;
+    try {
+        RLS rls2;
+        rls.save("rlstest.model");
+        rls2.load("rlstest.model");
+
+        for (unsigned int i=max_itr; i<max_itr+50; i++) {
+            input(0) = sin(i*0.01);
+            output(0) = sin((i+1)*0.01);
+
+            //update
+            delay_window.update(input);
+
+            //predict
+            delay_window.getState(state);
+            rls2.predict(state, prediction, prediction_variance);
+            double error = (prediction - output).norm();
+            cout << "Error: " << error << endl;
+        }
+
+    } catch (OTLException &e) {
+        e.showError();
+    }
+
+
+
+
 }
 
 int main(int argc, char **argv) {
@@ -78,7 +105,7 @@ int main(int argc, char **argv) {
     VectorXd state;
 
     //update our window to test
-    for (unsigned int i=0; i<5; i++) {
+    for (unsigned int i=0; i<20; i++) {
         VectorXd input(1);
         input(0) = i;
         delay_window.update(input);

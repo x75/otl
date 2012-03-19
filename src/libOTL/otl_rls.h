@@ -90,7 +90,8 @@ void RLS::train(const VectorXd &state, const VectorXd &output) {
     return;
 }
 
-void RLS::predict(const VectorXd &state, VectorXd &prediction, VectorXd &prediction_variance) {
+void RLS::predict(const VectorXd &state, VectorXd &prediction,
+                  VectorXd &prediction_variance) {
     //check if we have initialised the system
     if (!this->initialized) {
         throw OTLException("RLS not yet initialised");
@@ -165,11 +166,13 @@ void RLS::load(std::string filename) {
         this->w_rls.push_back(w);
     }
 
+    this->initialized = true;
     in.close();
 }
 
 
-void RLS::init(unsigned int state_dim, unsigned int output_dim, double delta, double lambda, double noise) {
+void RLS::init(unsigned int state_dim, unsigned int output_dim,
+               double delta, double lambda, double noise) {
 
     this->delta = delta;
     this->lambda = lambda;
