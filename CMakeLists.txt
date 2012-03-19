@@ -4,7 +4,7 @@ project(OTL)
 set(SOURCES src/libOTL/otl.h
     src/libOTL/otl.cpp
     src/libOTL/otl_exception.h
-    src/libOTL/otl_kernels.h
+    src/libOTL/otl_kernel.h
     src/libOTL/otl_learning_algs.h
     src/libOTL/otl_rls.h
     src/libOTL/otl_aug_state.h
