@@ -20,11 +20,47 @@
 #include "otl_window.h"
 #include "otl_rls.h"
 #include "otl_reservoir.h"
+#include "otl_kernel_gaussian.h"
 #include <iostream>
 #include <cmath>
 
 using namespace OTL;
 using namespace std;
+
+void gaussianKernelTest(void) {
+
+    try {
+        GaussianKernel gk;
+
+        VectorXd param(2);
+        double l = 10;
+        double alpha = 1.0;
+        param(0) = l;
+        param(1) = alpha;
+
+        gk.init(10, param);
+
+        VectorXd x(10);
+        VectorXd y(10);
+        x << 1,2,3,4,5,6,7,8,9,10;
+        y = x;
+        y = x*2;
+
+        std::cout << gk.eval(x,x) << std::endl;
+        std::cout << gk.eval(x,y) << std::endl;
+
+        double eps = 1e-12;
+        if (gk.eval(x,y) - 0.145876 > eps) {
+            std::cout << "Gaussian Kernel produced a WRONG answer!!! " << std::endl;
+        } else {
+            std::cout << "Gaussian Kernel produced a RIGHT answer!!! " << std::endl;
+        }
+
+    } catch (OTLException &e) {
+        e.showError();
+    }
+
+}
 
 
 void sinTestRLSESN(void) {
@@ -184,6 +220,9 @@ void sinTestWRLS(void) {
 }
 
 int main(int argc, char **argv) {
+    gaussianKernelTest();
+    return 0;
+
     sinTestRLSESN();
     return 0;
 

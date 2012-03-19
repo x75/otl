@@ -12,14 +12,15 @@ namespace OTL {
 
 class Kernel {
 public:
-    virtual void init(VectorXd &parameters) = 0;
+    virtual void init(unsigned int state_dim, VectorXd &parameters) = 0;
     virtual void getParameters(VectorXd &parameters) = 0;
     virtual void save(std::string filename) = 0;
     virtual void load(std::string filename) = 0;
 
     virtual double eval(VectorXd &x) = 0;
     virtual double eval(VectorXd &x, VectorXd &y) = 0;
-    virtual void eval(VectorXd &x, MatrixXd &Y, VectorXd &kern_vals) = 0;
+    virtual void eval(VectorXd &x, std::vector<VectorXd> &Y,
+                      VectorXd &kern_vals) = 0;
 };
 
 
