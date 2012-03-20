@@ -75,6 +75,7 @@ private:
 };
 
 SOGP::SOGP(void) {
+    this->kernel = NULL;
     this->kernel_factory = NULL;
     this->initialized = false;
 }
@@ -104,8 +105,8 @@ SOGP::SOGP(SOGP &rhs) {
 }
 
 SOGP::~SOGP() {
-    delete this->kernel;
-    delete this->kernel_factory;
+    if (this->kernel != NULL) delete this->kernel;
+    if (this->kernel_factory != NULL) delete this->kernel_factory;
 }
 
 void SOGP::train(const VectorXd &state, const VectorXd &output) {

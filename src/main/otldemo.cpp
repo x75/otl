@@ -33,6 +33,177 @@ using namespace OTL;
 using namespace std;
 
 
+void sinTestSTORKGP(void) {
+    //let's create our window
+    Window delay_window;
+    delay_window.init(1, 1, 10);
+
+    //let's create our learning algorithm
+    unsigned int state_dim = delay_window.getStateSize();
+
+    double l = 1.0;
+    double rho = 0.99;
+    double alpha = 1.0;
+    double input_dim = 1;
+
+    VectorXd params(4);
+    //[l rho alpha input_dim]
+    params << l, rho, alpha, input_dim;
+
+    RecursiveGaussianKernel rgk;
+    rgk.init(state_dim, params);
+
+    //create out kernel factory
+    KernelFactory kern_factory;
+    initKernelFactory(&kern_factory);
+
+    SOGP sogp;
+    double noise = 0.0001;
+    double epsilon = 1e-3;
+    unsigned int capacity = 100;
+    unsigned int output_dim = 1;
+
+    sogp.init(state_dim, output_dim, rgk, kern_factory, noise, epsilon, capacity);
+
+    //now we loop using a sine wave
+    unsigned int max_itr = 1000;
+    VectorXd input(1);
+    VectorXd output(1);
+
+    VectorXd state;
+    VectorXd prediction;
+    VectorXd prediction_variance;
+
+    for (unsigned int i=0; i<max_itr; i++) {
+        input(0) = sin(i*0.01);
+        output(0) = sin((i+1)*0.01);
+
+        //update
+        delay_window.update(input);
+
+        //predict
+        delay_window.getState(state);
+        sogp.predict(state, prediction, prediction_variance);
+        double error = (prediction - output).norm();
+        cout << "Error: " << error << ", |BV|: " << sogp.getCurrentSize() <<  endl;
+
+
+        //train
+        sogp.train(state, output);
+    }
+
+    cout << "Testing saving and loading model " << std::endl;
+    try {
+        SOGP sogp2;
+        sogp.save("sogptest.model");
+        sogp2.setKernelFactory(kern_factory);
+        sogp2.load("sogptest.model");
+
+        for (unsigned int i=max_itr; i<max_itr+50; i++) {
+            input(0) = sin(i*0.01);
+            output(0) = sin((i+1)*0.01);
+
+            //update
+            delay_window.update(input);
+
+            //predict
+            delay_window.getState(state);
+            sogp2.predict(state, prediction, prediction_variance);
+            double error = (prediction - output).norm();
+            cout << "Error: " << error << endl;
+        }
+
+    } catch (OTLException &e) {
+        e.showError();
+    }
+}
+
+
+void sinTestSOGPWin(void) {
+    //let's create our window
+    Window delay_window;
+    delay_window.init(1, 1, 10);
+
+    //let's create our learning algorithm
+    unsigned int state_dim = delay_window.getStateSize();
+
+    double l = 1.0;
+    double rho = 0.99;
+    double alpha = 1.0;
+    double input_dim = 1;
+
+    VectorXd params(2);
+    //[l rho alpha input_dim]
+    params << l, alpha;
+
+    GaussianKernel rgk;
+    rgk.init(state_dim, params);
+
+    //create out kernel factory
+    KernelFactory kern_factory;
+    initKernelFactory(&kern_factory);
+
+    SOGP sogp;
+    double noise = 0.0001;
+    double epsilon = 1e-3;
+    unsigned int capacity = 100;
+    unsigned int output_dim = 1;
+
+    sogp.init(state_dim, output_dim, rgk, kern_factory, noise, epsilon, capacity);
+
+    //now we loop using a sine wave
+    unsigned int max_itr = 1000;
+    VectorXd input(1);
+    VectorXd output(1);
+
+    VectorXd state;
+    VectorXd prediction;
+    VectorXd prediction_variance;
+
+    for (unsigned int i=0; i<max_itr; i++) {
+        input(0) = sin(i*0.01);
+        output(0) = sin((i+1)*0.01);
+
+        //update
+        delay_window.update(input);
+
+        //predict
+        delay_window.getState(state);
+        sogp.predict(state, prediction, prediction_variance);
+        double error = (prediction - output).norm();
+        cout << "Error: " << error << ", |BV|: " << sogp.getCurrentSize() <<  endl;
+
+
+        //train
+        sogp.train(state, output);
+    }
+
+    cout << "Testing saving and loading model " << std::endl;
+    try {
+        SOGP sogp2;
+        sogp.save("sogptest.model");
+        sogp2.setKernelFactory(kern_factory);
+        sogp2.load("sogptest.model");
+
+        for (unsigned int i=max_itr; i<max_itr+50; i++) {
+            input(0) = sin(i*0.01);
+            output(0) = sin((i+1)*0.01);
+
+            //update
+            delay_window.update(input);
+
+            //predict
+            delay_window.getState(state);
+            sogp2.predict(state, prediction, prediction_variance);
+            double error = (prediction - output).norm();
+            cout << "Error: " << error << endl;
+        }
+
+    } catch (OTLException &e) {
+        e.showError();
+    }
+}
+
 void SOGPMultidimTest(void) {
     //Create our gaussian kernel
     GaussianKernel gk;
@@ -370,6 +541,20 @@ void sinTestWRLS(void) {
 }
 
 int main(int argc, char **argv) {
+    try {
+        sinTestSOGPWin();
+    } catch (OTLException &e) {
+        e.showError();
+    }
+    //return 0;
+
+
+    try {
+        sinTestSTORKGP();
+    } catch (OTLException &e) {
+        e.showError();
+    }
+    return 0;
 
     SOGPMultidimTest();
     return 0;

@@ -24,7 +24,7 @@ public:
       ARD.
       \param state_dim the input state dimension
       \param parameters a VectorXd containing:
-        [l(1) l(2) ... l(input_dim-1) rho alpha input_dim]
+        [l(1) l(2) ... l(input_dim) rho alpha input_dim]
         where l is the characteristic length scale
             rho is the spectral radius (typically 0.99)
             alpha is the magnitude multiplier (leave at 1 if unsure).
@@ -69,8 +69,10 @@ RecursiveGaussianKernel::RecursiveGaussianKernel() : Kernel("RecursiveGaussian")
 RecursiveGaussianKernel::RecursiveGaussianKernel(RecursiveGaussianKernel &rhs) : Kernel("RecursiveGaussian") {
     this->parameters = rhs.parameters;
     this->b = rhs.b;
+    this->rho = rhs.rho;
     this->alpha = rhs.alpha;
     this->state_dim = rhs.state_dim;
+    this->input_dim = rhs.input_dim;
     this->initialised = rhs.initialised;
 }
 
@@ -80,20 +82,24 @@ void RecursiveGaussianKernel::init(const unsigned int state_dim, const VectorXd 
     }
 
     this->state_dim = state_dim;
+    unsigned int end = parameters.rows() - 1;
+    this->input_dim = floor(parameters(end) + 0.5);
 
     //set up the parameters
-    if (parameters.rows() == state_dim + 1 ) {
-        this->b = parameters.segment(0, state_dim);
-        this->alpha = parameters(state_dim);
-    } if (parameters.rows() == 2) {
-        this->b = VectorXd::Ones(state_dim)*parameters(0);
-        this->alpha = parameters(1);
+    if (parameters.rows() == input_dim + 3 ) {
+        this->b = parameters.segment(0, input_dim);
+        this->rho = parameters(input_dim);
+        this->alpha = parameters(input_dim+1);
+    } if (parameters.rows() == 4) {
+        this->b = VectorXd::Ones(input_dim)*parameters(0);
+        this->rho = parameters(1);
+        this->alpha = parameters(2);
     } else {
         throw OTLException("parameters vector is the wrong size!");
     }
 
     //transform the length scales
-    for (unsigned int i=0; i<state_dim; i++) {
+    for (unsigned int i=0; i<input_dim; i++) {
         this->b(i) = 1.0/(2*(this->b(i)*this->b(i)));
         if (std::isnan(this->b(i)) || std::isinf(this->b(i))) {
             throw OTLException("Whoops. The lengthscale resulted"
@@ -149,6 +155,8 @@ void RecursiveGaussianKernel::save(std::ostream &out) {
     saveVectorToStream(out, this->parameters);
     saveVectorToStream(out, this->b);
     out << this->alpha << std::endl;
+    out << this->rho << std::endl;
+    out << this->input_dim << std::endl;
     out << this->state_dim << std::endl;
     out << this->initialised << std::endl;
 
@@ -159,6 +167,8 @@ void RecursiveGaussianKernel::load(std::istream &in) {
     readVectorFromStream(in, this->parameters);
     readVectorFromStream(in, this->b);
     in >> this->alpha;
+    in >> this->rho;
+    in >> this->input_dim;
     in >> this->state_dim;
     in >> this->initialised;
 }
@@ -183,13 +193,17 @@ double RecursiveGaussianKernel::eval(const VectorXd &x, const VectorXd &y) {
                            "has a different size than the initialisation.");
     }
 
-    double kval = 0.0;
-    VectorXd diffxy = x-y;
-    for (unsigned int i=0; i<diffxy.rows(); i++) {
-        kval += diffxy(i)*diffxy(i)*b(i);
+    double kval = 1.0;
+    unsigned int n_segments = this->state_dim/this->input_dim;
+    for (unsigned int i=0; i<n_segments; i++) {
+        VectorXd diffxy = x.segment(i*this->input_dim, this->input_dim) -
+                y.segment(i*this->input_dim, this->input_dim);
+        double val = 0.0;
+        for (unsigned int j=0; j<this->input_dim; j++) {
+            val += diffxy(j)*diffxy(j)*b(j);
+        }
+        kval = this->alpha*exp(-val)*exp( (kval - 1)/this->rho );
     }
-
-    kval = this->alpha*exp(-kval);
     return kval;
 }
 
