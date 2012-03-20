@@ -1,5 +1,5 @@
-#ifndef OTL_KERNEL_GAUSSIAN_237017905890183921890489018490123213
-#define OTL_KERNEL_GAUSSIAN_237017905890183921890489018490123213
+#ifndef OTL_KERNEL_RecursiveGaussian_237017905890183921890489018490123213
+#define OTL_KERNEL_RecursiveGaussian_237017905890183921890489018490123213
 
 #include "otl_exception.h"
 #include "otl_kernel.h"
@@ -7,31 +7,32 @@
 #include <eigen3/Eigen/Dense>
 #include <string>
 #include <cmath>
-#include <fstream>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
 namespace OTL {
 
-class GaussianKernel : public Kernel {
+class RecursiveGaussianKernel : public Kernel {
 public:
-    static const std::string name;
 
-    GaussianKernel();
-    GaussianKernel(GaussianKernel &rhs);
+    RecursiveGaussianKernel();
+    RecursiveGaussianKernel(RecursiveGaussianKernel &rhs);
 
     /**
-      \brief initialises the gaussian kernel. Note that this kernel can perform
+      \brief initialises the RecursiveGaussian kernel. Note that this kernel can perform
       ARD.
       \param state_dim the input state dimension
       \param parameters a VectorXd containing:
-        [l(1) l(2) ... l(state_dim-1) alpha]
+        [l(1) l(2) ... l(input_dim-1) rho alpha input_dim]
         where l is the characteristic length scale
-        and alpha is the magnitude multiplier (leave at 1 if unsure).
+            rho is the spectral radius (typically 0.99)
+            alpha is the magnitude multiplier (leave at 1 if unsure).
+            input_dim is the dimension of the input (since this is a VectorXd,
+                this value is rounded to the closest integer)
 
         Also permitted is:
-        [l alpha]
+        [l rho alpha input_dim]
         if all the characteristic length scales are equal
 
       **/
@@ -52,18 +53,20 @@ private:
     VectorXd parameters;
     VectorXd b;
     double alpha;
+    double rho;
 
     unsigned int state_dim;
+    unsigned int input_dim;
 
     bool initialised;
 };
 
 
-GaussianKernel::GaussianKernel() : Kernel("Gaussian") {
+RecursiveGaussianKernel::RecursiveGaussianKernel() : Kernel("RecursiveGaussian"){
     this->initialised = false;
 }
 
-GaussianKernel::GaussianKernel(GaussianKernel &rhs) : Kernel("Gaussian") {
+RecursiveGaussianKernel::RecursiveGaussianKernel(RecursiveGaussianKernel &rhs) : Kernel("RecursiveGaussian") {
     this->parameters = rhs.parameters;
     this->b = rhs.b;
     this->alpha = rhs.alpha;
@@ -71,7 +74,7 @@ GaussianKernel::GaussianKernel(GaussianKernel &rhs) : Kernel("Gaussian") {
     this->initialised = rhs.initialised;
 }
 
-void GaussianKernel::init(const unsigned int state_dim, const VectorXd &parameters) {
+void RecursiveGaussianKernel::init(const unsigned int state_dim, const VectorXd &parameters) {
     if (state_dim == 0) {
         throw OTLException("State dimension must be larger than 0");
     }
@@ -103,16 +106,16 @@ void GaussianKernel::init(const unsigned int state_dim, const VectorXd &paramete
     this->initialised = true;
 }
 
-void GaussianKernel::getParameters(VectorXd &parameters) {
+void RecursiveGaussianKernel::getParameters(VectorXd &parameters) {
     if (!this->initialised) {
-        throw OTLException("You can't get parameters from the Gaussian Kernel"
+        throw OTLException("You can't get parameters from the RecursiveGaussian Kernel"
                            "when it has not been initialised yet.");
     }
 
     parameters = this->parameters;
 }
 
-void GaussianKernel::save(const std::string filename) {
+void RecursiveGaussianKernel::save(const std::string filename) {
     std::ofstream out;
     try {
         out.open(filename.c_str());
@@ -127,7 +130,7 @@ void GaussianKernel::save(const std::string filename) {
     out.close();
 }
 
-void GaussianKernel::load(const std::string filename) {
+void RecursiveGaussianKernel::load(const std::string filename) {
     std::ifstream in;
     try {
         in.open(filename.c_str());
@@ -141,7 +144,7 @@ void GaussianKernel::load(const std::string filename) {
     in.close();
 }
 
-void GaussianKernel::save(std::ostream &out) {
+void RecursiveGaussianKernel::save(std::ostream &out) {
 
     saveVectorToStream(out, this->parameters);
     saveVectorToStream(out, this->b);
@@ -151,7 +154,7 @@ void GaussianKernel::save(std::ostream &out) {
 
 }
 
-void GaussianKernel::load(std::istream &in) {
+void RecursiveGaussianKernel::load(std::istream &in) {
 
     readVectorFromStream(in, this->parameters);
     readVectorFromStream(in, this->b);
@@ -161,24 +164,22 @@ void GaussianKernel::load(std::istream &in) {
 }
 
 
-
-
-Kernel* GaussianKernel::createCopy(void) {
-    return (Kernel*) new GaussianKernel(*this);
+Kernel* RecursiveGaussianKernel::createCopy(void) {
+    return (Kernel*) new RecursiveGaussianKernel(*this);
 }
 
-double GaussianKernel::eval(const VectorXd &x) {
+double RecursiveGaussianKernel::eval(const VectorXd &x) {
     return this->eval(x,x);
 }
 
-double GaussianKernel::eval(const VectorXd &x, const VectorXd &y) {
+double RecursiveGaussianKernel::eval(const VectorXd &x, const VectorXd &y) {
     if (x.rows() != y.rows()) {
-        throw OTLException("Hey, GaussianKernel cannot evaluate"
+        throw OTLException("Hey, RecursiveGaussianKernel cannot evaluate"
                            "vectors of different sizes");
     }
 
     if (x.rows() != this->state_dim) {
-        throw OTLException("Hey, GaussianKernel says the vector to evaluate "
+        throw OTLException("Hey, RecursiveGaussianKernel says the vector to evaluate "
                            "has a different size than the initialisation.");
     }
 
@@ -192,7 +193,7 @@ double GaussianKernel::eval(const VectorXd &x, const VectorXd &y) {
     return kval;
 }
 
-void GaussianKernel::eval(const VectorXd &x, const std::vector<VectorXd> &Y,
+void RecursiveGaussianKernel::eval(const VectorXd &x, const std::vector<VectorXd> &Y,
                           VectorXd &kern_vals)
 {
     if (Y.size() == 0) {

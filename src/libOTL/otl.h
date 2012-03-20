@@ -46,16 +46,16 @@ using Eigen::VectorXd;
 
 namespace OTL {
 
-class OTL {
-public:
-    void update(const VectorXd &input);
-    void predict(VectorXd &prediction, VectorXd &pred_variance);
-    void train(const VectorXd &target);
+//class OTL {
+//public:
+//    void update(const VectorXd &input);
+//    void predict(VectorXd &prediction, VectorXd &pred_variance);
+//    void train(const VectorXd &target);
 
-    void save(const std::string &filename);
-    void load(const std::string &filename);
+//    void save(const std::string &filename);
+//    void load(const std::string &filename);
 
-};
+//};
 
 
 }

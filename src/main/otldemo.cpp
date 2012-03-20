@@ -24,6 +24,7 @@
 #include "otl_reservoir.h"
 #include "otl_window.h"
 #include "otl_kernel_gaussian.h"
+#include "otl_kernel_factory.h"
 
 #include <iostream>
 #include <cmath>
@@ -36,9 +37,6 @@ void SOGPMultidimTest(void) {
     //Create our gaussian kernel
     GaussianKernel gk;
     unsigned int output_dim = 2;
-    double noise = 0.0001;
-    double epsilon = 1e-4;
-    unsigned int capacity = 20;
 
     VectorXd param(2);
     double l = 1.0;
@@ -48,9 +46,18 @@ void SOGPMultidimTest(void) {
     unsigned int state_dim = 2;
     gk.init(state_dim, param);
 
+    //create out kernel factory
+    KernelFactory kern_factory;
+    initKernelFactory(&kern_factory);
+
     SOGP sogp;
+    double noise = 0.0001;
+    double epsilon = 1e-4;
+    unsigned int capacity = 20;
+
+
     try {
-        sogp.init(state_dim, output_dim, gk, noise, epsilon, capacity);
+        sogp.init(state_dim, output_dim, gk, kern_factory, noise, epsilon, capacity);
 
         //now we loop using a sine wave
         unsigned int max_itr = 100;
@@ -62,7 +69,7 @@ void SOGPMultidimTest(void) {
         VectorXd prediction_variance;
 
         VectorXd all_input = VectorXd::Random(max_itr)*2*M_PI;
-
+        //std::cout << all_input << std::endl;
         for (unsigned int i=0; i<max_itr; i++) {
             input(0) = all_input(i);//sin(i*0.01);
             input(1) = all_input(i);
@@ -80,6 +87,29 @@ void SOGPMultidimTest(void) {
             sogp.train(input, output);
 
         }
+
+
+        sogp.save("sogp.model");
+        SOGP sogp2;
+        sogp2.setKernelFactory(kern_factory);
+        sogp2.load("sogp.model");
+        std::cout << "\nTesting save and load facilities\n" << std::endl;
+        for (unsigned int i=0; i<max_itr; i++) {
+            input(0) = all_input(i);//sin(i*0.01);
+            input(1) = all_input(i);
+
+            output(0) = sin(input(0));//sin((i+1)*0.01);
+            output(1) = cos(input(0));
+            //predict
+            sogp2.predict(input, prediction, prediction_variance);
+            //std::cout << prediction << std::endl;
+            VectorXd error = (prediction - output).array() * (prediction- output).array();
+            for (unsigned int j=0; j<error.rows(); j++) error(j) = sqrt(error(j));
+            cout << "Error: " << error.transpose() << ", " << sogp2.getCurrentSize() << endl;
+
+        }
+
+
     } catch (OTLException &e) {
         e.showError();
     }
@@ -103,9 +133,14 @@ void SOGPTest(void) {
     unsigned int state_dim = 1;
     gk.init(1, param);
 
+    //create out kernel factory
+    KernelFactory kern_factory;
+    initKernelFactory(&kern_factory);
+
+
     SOGP sogp;
     try {
-        sogp.init(state_dim, output_dim, gk, noise, epsilon, capacity);
+        sogp.init(state_dim, output_dim, gk, kern_factory, noise, epsilon, capacity);
 
         //now we loop using a sine wave
         unsigned int max_itr = 100;

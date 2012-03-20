@@ -5,10 +5,13 @@
 #include "otl_learning_algs.h"
 #include "otl_helpers.h"
 #include "otl_kernel.h"
+#include "otl_kernel_factory.h"
+
 #include <eigen3/Eigen/Dense>
 #include <string>
 #include <fstream>
 #include <vector>
+
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -38,12 +41,14 @@ public:
       **/
     virtual void init(unsigned int state_dim, unsigned int output_dim,
                       Kernel &kernel,
+                      KernelFactory &kernel_factory,
                       double noise,
                       double epsilon,
                       unsigned int capacity);
 
 
     virtual unsigned int getCurrentSize(void);
+    virtual void setKernelFactory(KernelFactory &kernel_factory);
 
 private:
     bool initialized; //initialised?
@@ -53,6 +58,8 @@ private:
     unsigned int current_size;
 
     Kernel *kernel;
+    KernelFactory *kernel_factory;
+
     double epsilon;
     double noise;
     unsigned int capacity;
@@ -68,6 +75,7 @@ private:
 };
 
 SOGP::SOGP(void) {
+    this->kernel_factory = NULL;
     this->initialized = false;
 }
 
@@ -78,6 +86,7 @@ SOGP::SOGP(SOGP &rhs) {
 SOGP::~SOGP() {
     //TODO
     delete this->kernel;
+    delete this->kernel_factory;
 }
 
 void SOGP::train(const VectorXd &state, const VectorXd &output) {
@@ -271,32 +280,97 @@ void SOGP::predict(const VectorXd &state, VectorXd &prediction,
 }
 
 void SOGP::reset() {
-    //TODO
+    this->alpha = MatrixXd::Zero(this->capacity+1, this->output_dim);
+    this->C = MatrixXd::Zero(this->capacity+1, this->capacity+1);
+    this->Q = MatrixXd::Zero(this->capacity+1, this->capacity+1);
 
+    this->initialized = true;
     return;
 }
 
 void SOGP::save(std::string filename) {
-    std::ofstream out(filename.c_str());
-    //TODO
+    std::ofstream out;
+    try {
+        out.open(filename.c_str());
+    } catch (std::exception &e) {
+        std::string error_msg = "Cannot open ";
+        error_msg += filename + " for writing";
+        throw OTLException(error_msg);
+    }
+
+    out << this->kernel->getName() << std::endl;
+    kernel->save(out);
+
+    out << this->state_dim << std::endl;
+    out << this->output_dim << std::endl;
+    out << this->noise << std::endl;
+    out << this->epsilon << std::endl;
+    out << this->capacity << std::endl;
+    out << this->current_size << std::endl;
+    out << this->initialized << std::endl;
+
+    //initialise the matrices : not that the capacity is +1 since
+    //we allow it to grow one more before reducing.
+    saveMatrixToStream(out, this->alpha);
+    saveMatrixToStream(out, this->C);
+    saveMatrixToStream(out, this->Q);
+
+    for (unsigned int i=0; i<basis_vectors.size(); i++) {
+        saveVectorToStream(out, basis_vectors[i]);
+    }
+
     out.close();
 }
 
 void SOGP::load(std::string filename) {
-    std::ifstream in(filename.c_str());
+    if (this->kernel_factory == NULL) {
+        throw OTLException("Sorry, you need to provide a Kernel Factory before you can load a model.");
+    }
 
-        //TODO
+    std::ifstream in;
+    try {
+        in.open(filename.c_str());
+    } catch (std::exception &e) {
+        std::string error_msg = "Cannot open ";
+        error_msg += filename + " for writing";
+        throw OTLException(error_msg);
+    }
+    std::string kernel_name;
+    in >> kernel_name;
+    this->kernel = this->kernel_factory->get(kernel_name);
+    this->kernel->load(in);
+
+    in >> this->state_dim;
+    in >> this->output_dim;
+    in >> this->noise;
+    in >> this->epsilon;
+    in >> this->capacity;
+    in >> this->current_size;
+    in >> this->initialized;
+
+    readMatrixFromStream(in, this->alpha);
+    readMatrixFromStream(in, this->C);
+    readMatrixFromStream(in, this->Q);
+
+    for (unsigned int i=0; i<this->current_size; i++) {
+        VectorXd temp;
+        readVectorFromStream(in, temp);
+        this->basis_vectors.push_back(temp);
+    }
+
     in.close();
 }
 
 
 void SOGP::init(unsigned int state_dim, unsigned int output_dim,
                 Kernel &kernel,
+                KernelFactory &kernel_factory,
                 double noise,
                 double epsilon,
                 unsigned int capacity) {
 
     this->kernel = kernel.createCopy();
+    this->kernel_factory = kernel_factory.createCopy();
     this->state_dim = state_dim;
     this->output_dim = output_dim;
     this->noise = noise;
@@ -317,6 +391,9 @@ unsigned int SOGP::getCurrentSize(void) {
     return this->current_size;
 }
 
+void SOGP::setKernelFactory(KernelFactory &kernel_factory) {
+    this->kernel_factory = kernel_factory.createCopy();
+}
 
 }
 #endif
