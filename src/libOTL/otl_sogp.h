@@ -42,6 +42,9 @@ public:
                       double epsilon,
                       unsigned int capacity);
 
+
+    virtual unsigned int getCurrentSize(void);
+
 private:
     bool initialized; //initialised?
 
@@ -59,6 +62,8 @@ private:
     MatrixXd Q;
 
     std::vector<VectorXd> basis_vectors;
+
+    void reduceBasisVectorSet(unsigned int index);
 
 };
 
@@ -86,7 +91,7 @@ void SOGP::train(const VectorXd &state, const VectorXd &output) {
     //we are just starting.
     if (this->current_size == 0) {
 
-        this->alpha.block(0,0,1, this->output_dim) = output.array() / (kstar + this->noise);
+        this->alpha.block(0,0,1, this->output_dim) = (output.array() / (kstar + this->noise)).transpose();
         this->C.block(0,0,1,1) = VectorXd::Ones(1)*-1/(kstar + this->noise);
         this->Q.block(0,0,1,1) = VectorXd::Ones(1)*1/(kstar);
         this->basis_vectors.push_back(state);
@@ -100,10 +105,11 @@ void SOGP::train(const VectorXd &state, const VectorXd &output) {
     //cache Ck
     VectorXd Ck = this->C.block(0,0, this->current_size, this->current_size)*k;
 
-    VectorXd m = this->alpha.block(0,0,this->current_size, this->output_dim).transpose() * k;
+    VectorXd m = k.transpose()*this->alpha.block(0,0,this->current_size, this->output_dim);
     double s2 = kstar + (k.dot(Ck));
 
     if (s2 < 1e-12) {
+        //std::cout << "s2: " << s2 << std::endl;
         s2 = 1e-12;
     }
 
@@ -124,8 +130,6 @@ void SOGP::train(const VectorXd &state, const VectorXd &output) {
         s.conservativeResize(this->current_size + 1);
         s(this->current_size) = 1;
 
-        //add to basis vectors
-        this->basis_vectors.push_back(state);
 
         //update Q (inverse of C)
         ehat.conservativeResize(this->current_size+1);
@@ -138,13 +142,16 @@ void SOGP::train(const VectorXd &state, const VectorXd &output) {
 
         //update alpha
         MatrixXd diffAlpha = alpha.block(0,0, this->current_size+1, this->output_dim)
-                + (s*q);
+                + (s*q.transpose());
         alpha.block(0,0, this->current_size+1, this->output_dim) = diffAlpha;
 
         //update C
         MatrixXd diffC = C.block(0,0, this->current_size+1, this->current_size+1)
-                + (s*s.transpose());
+                + r*(s*s.transpose());
         C.block(0,0, this->current_size+1, this->current_size+1) = diffC;
+
+        //add to basis vectors
+        this->basis_vectors.push_back(state);
 
         //increment current size
         this->current_size++;
@@ -155,7 +162,7 @@ void SOGP::train(const VectorXd &state, const VectorXd &output) {
 
         //update alpha
         MatrixXd diffAlpha = alpha.block(0,0, this->current_size, this->output_dim)
-                + s*(q*eta).transpose();
+                + s*((q*eta).transpose());
         alpha.block(0,0, this->current_size, this->output_dim) = diffAlpha;
 
         //update C
@@ -164,7 +171,73 @@ void SOGP::train(const VectorXd &state, const VectorXd &output) {
         C.block(0,0, this->current_size, this->current_size) = diffC;
     }
 
+    //check if we need to reduce size
+    if (this->basis_vectors.size() > this->capacity) {
+        //std::cout << "Reduction!" << std::endl;
+        double min_val = (alpha.row(0)).squaredNorm()/(Q(0,0) + C(0,0));
+        unsigned int min_index = 0;
+        for (unsigned int i=1; i<this->basis_vectors.size(); i++) {
+            double scorei = (alpha.row(i)).squaredNorm()/(Q(i,i) + C(i,i));
+            if (scorei < min_val) {
+                min_val = scorei;
+                min_index = i;
+            }
+        }
+
+        this->reduceBasisVectorSet(min_index);
+    }
+
     return;
+}
+
+void SOGP::reduceBasisVectorSet(unsigned int index) {
+
+    unsigned int end = this->current_size-1;
+    VectorXd zero_vector = VectorXd::Zero(this->current_size);
+
+    VectorXd alpha_star = this->alpha.row(index);
+    VectorXd last_item = this->alpha.row(end);
+    alpha.block(index,0,1,this->output_dim) = last_item.transpose();
+    alpha.block(end,0,1, this->output_dim) = VectorXd::Zero(this->output_dim).transpose();
+    double cstar = this->C(index, index);
+    VectorXd Cstar = this->C.col(index);
+    Cstar(index) = Cstar(end);
+    Cstar.conservativeResize(end);
+    VectorXd Crep = C.col(end);
+    Crep(index) = Crep(end);
+    C.block(index, 0, 1, this->current_size) = Crep.transpose();
+    C.block(0, index, this->current_size, 1) = Crep;
+    C.block(end, 0, 1, this->current_size) = zero_vector.transpose();
+    C.block(0, end, this->current_size,1) = zero_vector;
+
+    double qstar = this->Q(index, index);
+    VectorXd Qstar = this->Q.col(index);
+    Qstar(index) = Qstar(end);
+    Qstar.conservativeResize(end);
+    VectorXd Qrep = Q.col(end);
+    Qrep(index) = Qrep(end);
+    Q.block(index, 0, 1, this->current_size) = Qrep.transpose();
+    Q.block(0, index, this->current_size, 1) = Qrep;
+    Q.block(end, 0, 1, this->current_size) = zero_vector.transpose();
+    Q.block(0, end, this->current_size,1) = zero_vector;
+
+    VectorXd qc = (Qstar + Cstar)/(qstar + cstar);
+    for (unsigned int i=0; i<this->output_dim; i++) {
+        VectorXd diffAlpha = alpha.block(0,i,end,1) - alpha_star(i)*qc;
+        alpha.block(0,i,end,1) = diffAlpha;
+    }
+
+    MatrixXd oldC = C.block(0,0, end, end);
+    C.block(0,0, end,end) = oldC + (Qstar*Qstar.transpose())/qstar -
+            ((Qstar + Cstar)*((Qstar + Cstar).transpose()))/(qstar+cstar);
+
+    MatrixXd oldQ = Q.block(0,0,end,end);
+    Q.block(0,0, end, end) = oldQ - (Qstar*Qstar.transpose())/qstar;
+
+    this->basis_vectors[index] = this->basis_vectors[end];
+    this->basis_vectors.pop_back();
+
+    this->current_size = end;
 }
 
 void SOGP::predict(const VectorXd &state, VectorXd &prediction,
@@ -189,7 +262,7 @@ void SOGP::predict(const VectorXd &state, VectorXd &prediction,
     //std::cout << "K: \n" << k << std::endl;
     //std::cout << "alpha: \n" << this->alpha.block(0,0,this->current_size, this->output_dim) << std::endl;
 
-    prediction = this->alpha.block(0,0,this->current_size, this->output_dim).transpose() * k;
+    prediction = k.transpose() *this->alpha.block(0,0,this->current_size, this->output_dim);
     prediction_variance = VectorXd::Ones(this->output_dim)*
             (k.dot(this->C.block(0,0, this->current_size, this->current_size)*k)
              + kstar + this->noise);
@@ -231,11 +304,17 @@ void SOGP::init(unsigned int state_dim, unsigned int output_dim,
     this->capacity = capacity;
     this->current_size = 0;
 
-    this->alpha = MatrixXd::Zero(this->capacity, this->output_dim);
-    this->C = MatrixXd::Zero(this->capacity, this->capacity);
-    this->Q = MatrixXd::Zero(this->capacity, this->capacity);
+    //initialise the matrices : not that the capacity is +1 since
+    //we allow it to grow one more before reducing.
+    this->alpha = MatrixXd::Zero(this->capacity+1, this->output_dim);
+    this->C = MatrixXd::Zero(this->capacity+1, this->capacity+1);
+    this->Q = MatrixXd::Zero(this->capacity+1, this->capacity+1);
 
     this->initialized = true;
+}
+
+unsigned int SOGP::getCurrentSize(void) {
+    return this->current_size;
 }
 
 

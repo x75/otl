@@ -32,26 +32,20 @@ using namespace OTL;
 using namespace std;
 
 
-void SOGPTest(void) {
-    //let's create our window
-    Window delay_window;
-    delay_window.init(1, 1, 1);
-
+void SOGPMultidimTest(void) {
     //Create our gaussian kernel
     GaussianKernel gk;
-
-    unsigned int state_dim = delay_window.getStateSize();
-    unsigned int output_dim = 1;
+    unsigned int output_dim = 2;
     double noise = 0.0001;
     double epsilon = 1e-4;
-    unsigned int capacity = 1000;
+    unsigned int capacity = 20;
 
     VectorXd param(2);
     double l = 1.0;
     double alpha = 1.0;
     param(0) = l;
     param(1) = alpha;
-
+    unsigned int state_dim = 2;
     gk.init(state_dim, param);
 
     SOGP sogp;
@@ -59,7 +53,62 @@ void SOGPTest(void) {
         sogp.init(state_dim, output_dim, gk, noise, epsilon, capacity);
 
         //now we loop using a sine wave
-        unsigned int max_itr = 999;
+        unsigned int max_itr = 100;
+        VectorXd input(2);
+        VectorXd output(2);
+
+        VectorXd state;
+        VectorXd prediction;
+        VectorXd prediction_variance;
+
+        VectorXd all_input = VectorXd::Random(max_itr)*2*M_PI;
+
+        for (unsigned int i=0; i<max_itr; i++) {
+            input(0) = all_input(i);//sin(i*0.01);
+            input(1) = all_input(i);
+
+            output(0) = sin(input(0));//sin((i+1)*0.01);
+            output(1) = cos(input(0));
+            //predict
+            sogp.predict(input, prediction, prediction_variance);
+            //std::cout << prediction << std::endl;
+            VectorXd error = (prediction - output).array() * (prediction- output).array();
+            for (unsigned int j=0; j<error.rows(); j++) error(j) = sqrt(error(j));
+            cout << "Error: " << error.transpose() << ", " << sogp.getCurrentSize() << endl;
+
+            //train
+            sogp.train(input, output);
+
+        }
+    } catch (OTLException &e) {
+        e.showError();
+    }
+
+}
+
+
+void SOGPTest(void) {
+    //Create our gaussian kernel
+    GaussianKernel gk;
+    unsigned int output_dim = 1;
+    double noise = 0.0001;
+    double epsilon = 1e-4;
+    unsigned int capacity = 20;
+
+    VectorXd param(2);
+    double l = 1.0;
+    double alpha = 1.0;
+    param(0) = l;
+    param(1) = alpha;
+    unsigned int state_dim = 1;
+    gk.init(1, param);
+
+    SOGP sogp;
+    try {
+        sogp.init(state_dim, output_dim, gk, noise, epsilon, capacity);
+
+        //now we loop using a sine wave
+        unsigned int max_itr = 100;
         VectorXd input(1);
         VectorXd output(1);
 
@@ -73,17 +122,15 @@ void SOGPTest(void) {
             input(0) = all_input(i);//sin(i*0.01);
             output(0) = sin(input(0)*0.01);//sin((i+1)*0.01);
 
-            //update
-            delay_window.update(input);
-
             //predict
-            delay_window.getState(state);
             sogp.predict(input, prediction, prediction_variance);
             double error = (prediction - output).norm();
-            cout << "Error: " << error << endl;
+            cout << "Error: " << error << ", " << sogp.getCurrentSize() << endl;
+
 
             //train
             sogp.train(input, output);
+
         }
     } catch (OTLException &e) {
         e.showError();
@@ -288,6 +335,9 @@ void sinTestWRLS(void) {
 }
 
 int main(int argc, char **argv) {
+
+    SOGPMultidimTest();
+    return 0;
 
     SOGPTest();
     return 0;
