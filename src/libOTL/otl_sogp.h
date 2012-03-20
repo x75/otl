@@ -80,11 +80,30 @@ SOGP::SOGP(void) {
 }
 
 SOGP::SOGP(SOGP &rhs) {
-    //TODO
+
+    this->kernel = rhs.kernel->createCopy();
+    this->kernel_factory = rhs.kernel_factory->createCopy();
+    this->state_dim = rhs.state_dim;
+    this->output_dim = rhs.output_dim;
+    this->noise = rhs.noise;
+    this->epsilon = rhs.epsilon;
+    this->capacity = rhs.capacity;
+    this->current_size = rhs.current_size;
+
+    //initialise the matrices : not that the capacity is +1 since
+    //we allow it to grow one more before reducing.
+    this->alpha = rhs.alpha;
+    this->C = rhs.C;
+    this->Q = rhs.Q;
+
+    for (unsigned int i=0; i<rhs.basis_vectors.size(); i++) {
+        this->basis_vectors.push_back(rhs.basis_vectors[i]);
+    }
+
+    this->initialized = rhs.initialized;
 }
 
 SOGP::~SOGP() {
-    //TODO
     delete this->kernel;
     delete this->kernel_factory;
 }
