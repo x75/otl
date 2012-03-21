@@ -1,3 +1,18 @@
+/**
+  OTL Helper functions.
+  Copyright 2012 All Rights Reserved, Harold Soh
+    haroldsoh@imperial.ac.uk
+    haroldsoh@gmail.com
+    http://www.haroldsoh.com
+
+  This class implements a few functions that assist in the main workings.
+  Right now, implements saving and loading Eigen VectorXd and MatrixXd objects
+  to/from streams.
+
+  Please see LICENSE.txt for licensing.
+
+  **/
+
 #ifndef OTL_HELPERS_H_32718964589163489217398127489164891734
 #define OTL_HELPERS_H_32718964589163489217398127489164891734
 
@@ -8,11 +23,20 @@
 #include <iostream>
 #include <exception>
 
+#ifdef __GNUG__
+#  include <cxxabi.h>
+#endif
+
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
 namespace OTL {
 
+/**
+  \brief Writes a MatrixXd object to a stream
+  \param out a valid output ostream
+  \param A the Matrix you want to write
+  */
 void saveMatrixToStream(std::ostream &out, MatrixXd &A) {
 
     if (!out) {
@@ -33,6 +57,11 @@ void saveMatrixToStream(std::ostream &out, MatrixXd &A) {
 
 }
 
+/**
+  \brief Reads a MatrixXd object from a stream
+  \param in a valid input istream
+  \param A where to put the loaded information
+  */
 void readMatrixFromStream(std::istream &in, MatrixXd &A) {
     if (!in) {
         throw OTLException("Whoops. Your in stream seems to be wrong");
@@ -55,6 +84,12 @@ void readMatrixFromStream(std::istream &in, MatrixXd &A) {
     }
 }
 
+
+/**
+  \brief Writes a VectorXd object to a stream
+  \param out a valid output ostream
+  \param A the VectorXd you want to write
+  */
 void saveVectorToStream(std::ostream &out, VectorXd &A) {
     if (!out) {
         throw OTLException("Whoops. Your stream seems to be wrong");
@@ -72,7 +107,11 @@ void saveVectorToStream(std::ostream &out, VectorXd &A) {
 }
 
 
-
+/**
+  \brief Reads a VectorXd object from a stream
+  \param in a valid input istream
+  \param A where to put the loaded information
+  */
 void readVectorFromStream(std::istream &in, VectorXd &A) {
     if (!in) {
         throw OTLException("Whoops. Your in stream seems to be wrong");
@@ -80,9 +119,8 @@ void readVectorFromStream(std::istream &in, VectorXd &A) {
 
     unsigned int m;
     in >> m;
-    A = VectorXd(m);
-
-    for (unsigned int i=0; i<A.rows(); i++) {
+    A.resize(m);
+    for (unsigned int i=0; i<m; i++) {
         double temp;
         try {
             in >> temp;
@@ -92,6 +130,25 @@ void readVectorFromStream(std::istream &in, VectorXd &A) {
 
         A(i) = temp;
     }
+}
+
+// Based on Stack Overflow answer by Ali
+// http://stackoverflow.com/a/4541470/935415
+std::string demangle(const char* name)
+{
+   int status = -4;
+   char * demangledName = NULL;
+
+#ifdef __GNUC__
+   demangledName = abi::__cxa_demangle(name, NULL, NULL, &status);
+#endif
+
+   std::string result = (status == 0) ? demangledName : name;
+
+   if ( demangledName != NULL)
+       free(demangledName);
+
+   return result;
 }
 
 

@@ -1,3 +1,17 @@
+/**
+  OTL Augmented state virtual class.
+  Copyright 2012 All Rights Reserved, Harold Soh
+    haroldsoh@imperial.ac.uk
+    haroldsoh@gmail.com
+    http://www.haroldsoh.com
+
+  Use this class if you want to derive your own augmented states.
+
+  Please see LICENSE.txt for licensing.
+
+  **/
+
+
 #ifndef OTL_AUGMENTED_STATE_H_283901790654792078109839078943267862190875436284789210
 #define OTL_AUGMENTED_STATE_H_283901790654792078109839078943267862190875436284789210
 

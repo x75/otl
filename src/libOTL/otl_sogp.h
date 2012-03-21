@@ -1,3 +1,17 @@
+/**
+  OTL Sparse Online Gaussian Process Class.
+  Copyright 2012 All Rights Reserved, Harold Soh
+    haroldsoh@imperial.ac.uk
+    haroldsoh@gmail.com
+    http://www.haroldsoh.com
+
+  Implements the Sparse online gaussian process (SOGP) proposed by Csato
+  and Opper.
+
+  Please see LICENSE.txt for licensing.
+
+  **/
+
 #ifndef OTL_SOGP_H_750279082490178956479784073190
 #define OTL_SOGP_H_750279082490178956479784073190
 
@@ -24,31 +38,73 @@ public:
     SOGP(SOGP &rhs);
     ~SOGP();
 
+    /**
+      \brief Training Function. Trains the SOGP using a state and output
+      \param state the "input" state of type VectorXd.
+      \param output the desired output of type VectorXd.
+      **/
     virtual void train(const VectorXd &state, const VectorXd &output);
+
+    /**
+      \brief Prediction using state
+      \param state the "input" state of type VectorXd.
+      \param prediction the predicted output of type VectorXd.
+      \param prediction_variance the variance (uncertainty) of the predicted output
+      **/
     virtual void predict(const VectorXd &state, VectorXd &prediction, VectorXd &prediction_variance);
+
+    /**
+      \brief resets the SOGP
+      */
     virtual void reset();
+
+    /**
+      \brief saves the sogp to a file with filename
+      */
     virtual void save(std::string filename);
+
+    /**
+      \brief loads the sogp from filename using the default kernel factory
+      */
     virtual void load(std::string filename);
+
+
+    /**
+      \brief loads the sogp from filename
+      \param kernel_factory an OTL::KernelFactory object with a list of kernels.
+                This is used for reading and writing to disk. You MUST provide
+                a valid kernel factory to allow for correct reading/writing.
+      */
+    virtual void load(std::string filename, const KernelFactory &kernel_factory);
 
     /**
       \brief Initialises the SOGP
       \param state_dim how big is the state that we want to regress from
       \param output_dim how big is the output state
-      \param Kernel an OTL::Kernel object with the kernel you want to use
+      \param kernel an OTL::Kernel object with the kernel you want to use
       \param noise the noise parameter (application dependent)
       \param epsilon threshold parameter (typically small 1e-4)
       \param capacity the capacity of the SOGP (application dependent)
       **/
     virtual void init(unsigned int state_dim, unsigned int output_dim,
                       Kernel &kernel,
-                      KernelFactory &kernel_factory,
                       double noise,
                       double epsilon,
                       unsigned int capacity);
 
 
+    /**
+      \brief returns the current size of the SOGP (number of basis vectors)
+      */
     virtual unsigned int getCurrentSize(void);
+
+
+    /**
+      \brief sets the kernel factory
+      */
     virtual void setKernelFactory(KernelFactory &kernel_factory);
+
+
 
 private:
     bool initialized; //initialised?
@@ -58,7 +114,7 @@ private:
     unsigned int current_size;
 
     Kernel *kernel;
-    KernelFactory *kernel_factory;
+    KernelFactory kernel_factory;
 
     double epsilon;
     double noise;
@@ -76,16 +132,15 @@ private:
 
 SOGP::SOGP(void) {
     this->kernel = NULL;
-    this->kernel_factory = NULL;
+    initKernelFactory(this->kernel_factory);
     this->initialized = false;
 }
 
-SOGP::SOGP(SOGP &rhs) {
-
+SOGP::SOGP(SOGP &rhs) : LearningAlgorithm() {
     this->kernel = rhs.kernel->createCopy();
-    this->kernel_factory = rhs.kernel_factory->createCopy();
     this->state_dim = rhs.state_dim;
     this->output_dim = rhs.output_dim;
+    this->kernel_factory = kernel_factory;
     this->noise = rhs.noise;
     this->epsilon = rhs.epsilon;
     this->capacity = rhs.capacity;
@@ -106,7 +161,6 @@ SOGP::SOGP(SOGP &rhs) {
 
 SOGP::~SOGP() {
     if (this->kernel != NULL) delete this->kernel;
-    if (this->kernel_factory != NULL) delete this->kernel_factory;
 }
 
 void SOGP::train(const VectorXd &state, const VectorXd &output) {
@@ -343,10 +397,10 @@ void SOGP::save(std::string filename) {
 }
 
 void SOGP::load(std::string filename) {
-    if (this->kernel_factory == NULL) {
-        throw OTLException("Sorry, you need to provide a Kernel Factory before you can load a model.");
-    }
+    this->load(filename, this->kernel_factory);
+}
 
+void SOGP::load(std::string filename, const KernelFactory &kernel_factory) {
     std::ifstream in;
     try {
         in.open(filename.c_str());
@@ -355,9 +409,12 @@ void SOGP::load(std::string filename) {
         error_msg += filename + " for writing";
         throw OTLException(error_msg);
     }
+
     std::string kernel_name;
     in >> kernel_name;
-    this->kernel = this->kernel_factory->get(kernel_name);
+
+    delete kernel;
+    this->kernel = kernel_factory.get(kernel_name);
     this->kernel->load(in);
 
     in >> this->state_dim;
@@ -384,13 +441,11 @@ void SOGP::load(std::string filename) {
 
 void SOGP::init(unsigned int state_dim, unsigned int output_dim,
                 Kernel &kernel,
-                KernelFactory &kernel_factory,
                 double noise,
                 double epsilon,
                 unsigned int capacity) {
 
     this->kernel = kernel.createCopy();
-    this->kernel_factory = kernel_factory.createCopy();
     this->state_dim = state_dim;
     this->output_dim = output_dim;
     this->noise = noise;
@@ -412,7 +467,7 @@ unsigned int SOGP::getCurrentSize(void) {
 }
 
 void SOGP::setKernelFactory(KernelFactory &kernel_factory) {
-    this->kernel_factory = kernel_factory.createCopy();
+    this->kernel_factory = kernel_factory;
 }
 
 }

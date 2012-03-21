@@ -43,7 +43,7 @@ void sinTestSTORKGP(void) {
 
     double l = 1.0;
     double rho = 0.99;
-    double alpha = 1.0;
+    double alpha = 0.5;
     double input_dim = 1;
 
     VectorXd params(4);
@@ -55,7 +55,7 @@ void sinTestSTORKGP(void) {
 
     //create out kernel factory
     KernelFactory kern_factory;
-    initKernelFactory(&kern_factory);
+    initKernelFactory(kern_factory);
 
     SOGP sogp;
     double noise = 0.0001;
@@ -63,10 +63,10 @@ void sinTestSTORKGP(void) {
     unsigned int capacity = 100;
     unsigned int output_dim = 1;
 
-    sogp.init(state_dim, output_dim, rgk, kern_factory, noise, epsilon, capacity);
+    sogp.init(state_dim, output_dim, rgk, noise, epsilon, capacity);
 
     //now we loop using a sine wave
-    unsigned int max_itr = 1000;
+    unsigned int max_itr = 100;
     VectorXd input(1);
     VectorXd output(1);
 
@@ -129,7 +129,7 @@ void sinTestSOGPWin(void) {
 
     double l = 1.0;
     double rho = 0.99;
-    double alpha = 1.0;
+    double alpha = 0.5;
     double input_dim = 1;
 
     VectorXd params(2);
@@ -141,7 +141,7 @@ void sinTestSOGPWin(void) {
 
     //create out kernel factory
     KernelFactory kern_factory;
-    initKernelFactory(&kern_factory);
+    initKernelFactory(kern_factory);
 
     SOGP sogp;
     double noise = 0.0001;
@@ -149,10 +149,10 @@ void sinTestSOGPWin(void) {
     unsigned int capacity = 100;
     unsigned int output_dim = 1;
 
-    sogp.init(state_dim, output_dim, rgk, kern_factory, noise, epsilon, capacity);
+    sogp.init(state_dim, output_dim, rgk, noise, epsilon, capacity);
 
     //now we loop using a sine wave
-    unsigned int max_itr = 1000;
+    unsigned int max_itr = 100;
     VectorXd input(1);
     VectorXd output(1);
 
@@ -178,11 +178,13 @@ void sinTestSOGPWin(void) {
         sogp.train(state, output);
     }
 
+
     cout << "Testing saving and loading model " << std::endl;
+
     try {
         SOGP sogp2;
         sogp.save("sogptest.model");
-        sogp2.setKernelFactory(kern_factory);
+        //sogp2.setKernelFactory(kern_factory);
         sogp2.load("sogptest.model");
 
         for (unsigned int i=max_itr; i<max_itr+50; i++) {
@@ -198,7 +200,7 @@ void sinTestSOGPWin(void) {
             double error = (prediction - output).norm();
             cout << "Error: " << error << endl;
         }
-
+    return;
     } catch (OTLException &e) {
         e.showError();
     }
@@ -219,7 +221,7 @@ void SOGPMultidimTest(void) {
 
     //create out kernel factory
     KernelFactory kern_factory;
-    initKernelFactory(&kern_factory);
+    initKernelFactory(kern_factory);
 
     SOGP sogp;
     double noise = 0.0001;
@@ -228,7 +230,7 @@ void SOGPMultidimTest(void) {
 
 
     try {
-        sogp.init(state_dim, output_dim, gk, kern_factory, noise, epsilon, capacity);
+        sogp.init(state_dim, output_dim, gk, noise, epsilon, capacity);
 
         //now we loop using a sine wave
         unsigned int max_itr = 100;
@@ -306,12 +308,12 @@ void SOGPTest(void) {
 
     //create out kernel factory
     KernelFactory kern_factory;
-    initKernelFactory(&kern_factory);
+    initKernelFactory(kern_factory);
 
 
     SOGP sogp;
     try {
-        sogp.init(state_dim, output_dim, gk, kern_factory, noise, epsilon, capacity);
+        sogp.init(state_dim, output_dim, gk, noise, epsilon, capacity);
 
         //now we loop using a sine wave
         unsigned int max_itr = 100;

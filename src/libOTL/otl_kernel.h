@@ -1,3 +1,16 @@
+/**
+  OTL Kernel virtual class.
+  Copyright 2012 All Rights Reserved, Harold Soh
+    haroldsoh@imperial.ac.uk
+    haroldsoh@gmail.com
+    http://www.haroldsoh.com
+
+  Use this class if you want to derive your own Kernels.
+
+  Please see LICENSE.txt for licensing.
+
+  **/
+
 #ifndef OTL_KERNELS_473298757871098392107489372948904821
 #define OTL_KERNELS_473298757871098392107489372948904821
 
@@ -14,7 +27,9 @@ namespace OTL {
 
 class Kernel {
 public:
+
     Kernel(std::string kernel_name) : name(kernel_name) { }
+    virtual ~Kernel() { };
 
     virtual std::string getName() { return name; }
 
@@ -31,9 +46,22 @@ public:
     virtual void eval(const VectorXd &x, const std::vector<VectorXd> &Y,
                       VectorXd &kern_vals) = 0;
 
-    virtual Kernel* createCopy() = 0;
+    Kernel* createCopy() {
+        Kernel *result = internalCreateCopy();
 
+        if (typeid(*result) != typeid(*this)) {
+            throw OTLException("internalCreateCopy not properly overidden.");
+        }
+        return result;
+    }
+
+private:
     const std::string name;
+    Kernel(const Kernel &rhs);
+    Kernel &operator=(const Kernel &rhs);
+
+protected:
+    virtual Kernel* internalCreateCopy() const = 0;
 
 };
 

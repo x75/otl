@@ -1,3 +1,16 @@
+/**
+  OTL Recursive Least Squares Class
+  Copyright 2012 All Rights Reserved, Harold Soh
+    haroldsoh@imperial.ac.uk
+    haroldsoh@gmail.com
+    http://www.haroldsoh.com
+
+  Implements the basic recursive least squares algoritm
+
+  Please see LICENSE.txt for licensing.
+
+  **/
+
 #ifndef OTL_RLS_H_329079579082190890387902619047
 #define OTL_RLS_H_329079579082190890387902619047
 
@@ -7,6 +20,7 @@
 #include <eigen3/Eigen/Dense>
 #include <string>
 #include <fstream>
+#include <vector>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -44,7 +58,7 @@ RLS::RLS(void) {
     this->initialized = false;
 }
 
-RLS::RLS(RLS &rhs) {
+RLS::RLS(RLS &rhs) : LearningAlgorithm() {
     this->initialized = true; //initialised
 
     this->delta = rhs.delta;

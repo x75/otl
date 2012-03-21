@@ -1,0 +1,42 @@
+
+Online Temporal Learning (OTL)
+A library for online time-series learning. OTL was originally created to
+implement the OESGP and STORKGP algorithms. It can be used/extended
+to create other novel online temporal learning algorithms. Its only dependecy
+is the Eigen C++ library.
+
+Copyright 2012 All Rights Reserved, Harold Soh
+haroldsoh@imperial.ac.uk
+haroldsoh@gmail.com
+http://www.haroldsoh.com
+
+This code is DUAL-LICENSED.
+
+If you are using this code in non-commercial settings, e.g.,  at academic
+institutions, teaching institutes or for hobby, learning and research:
+You can use this code freely, i.e., make copies, distribute and modify the
+code for any non-commercial purpose provided the original license and this
+copyright notice are included.
+
+If you do use this code in your research, please cite:
+
+@inproceedings{Soh2012,
+Author = {Harold Soh and Yiannis Demiris},
+Booktitle = {International Joint Conference on Neural Networks (IJCNN)},
+Title = {Iterative Temporal Learning and Prediction with the Sparse
+Online Echo State Gaussian Process},
+Year = {2012}}
+
+If you use this code for commercial use:
+You must contact the author for commercial licenses, i.e., if you make
+financial profit out of this software, I think it's fair that I get
+some of it so that I can support my family and the causes I believe in.
+
+THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+PARTICULAR PURPOSE.
+
+Use at your own risk. That said, bug reports are welcome.
+
+

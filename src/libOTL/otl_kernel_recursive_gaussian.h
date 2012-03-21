@@ -17,8 +17,8 @@ class RecursiveGaussianKernel : public Kernel {
 public:
 
     RecursiveGaussianKernel();
-    RecursiveGaussianKernel(RecursiveGaussianKernel &rhs);
-
+    RecursiveGaussianKernel(const RecursiveGaussianKernel &rhs);
+    ~RecursiveGaussianKernel();
     /**
       \brief initialises the RecursiveGaussian kernel. Note that this kernel can perform
       ARD.
@@ -47,7 +47,9 @@ public:
     virtual double eval(const VectorXd &x, const VectorXd &y);
     virtual void eval(const VectorXd &x, const std::vector<VectorXd> &Y,
                       VectorXd &kern_vals);
-    virtual Kernel* createCopy(void);
+
+protected:
+    virtual Kernel* internalCreateCopy(void) const;
 
 private:
     VectorXd parameters;
@@ -66,7 +68,11 @@ RecursiveGaussianKernel::RecursiveGaussianKernel() : Kernel("RecursiveGaussian")
     this->initialised = false;
 }
 
-RecursiveGaussianKernel::RecursiveGaussianKernel(RecursiveGaussianKernel &rhs) : Kernel("RecursiveGaussian") {
+RecursiveGaussianKernel::~RecursiveGaussianKernel() {
+    return;
+}
+
+RecursiveGaussianKernel::RecursiveGaussianKernel(const RecursiveGaussianKernel &rhs) : Kernel("RecursiveGaussian") {
     this->parameters = rhs.parameters;
     this->b = rhs.b;
     this->rho = rhs.rho;
@@ -163,7 +169,6 @@ void RecursiveGaussianKernel::save(std::ostream &out) {
 }
 
 void RecursiveGaussianKernel::load(std::istream &in) {
-
     readVectorFromStream(in, this->parameters);
     readVectorFromStream(in, this->b);
     in >> this->alpha;
@@ -174,8 +179,9 @@ void RecursiveGaussianKernel::load(std::istream &in) {
 }
 
 
-Kernel* RecursiveGaussianKernel::createCopy(void) {
-    return (Kernel*) new RecursiveGaussianKernel(*this);
+Kernel* RecursiveGaussianKernel::internalCreateCopy(void) const {
+    RecursiveGaussianKernel* gk = new RecursiveGaussianKernel(*this);
+    return gk;
 }
 
 double RecursiveGaussianKernel::eval(const VectorXd &x) {
@@ -194,8 +200,8 @@ double RecursiveGaussianKernel::eval(const VectorXd &x, const VectorXd &y) {
     }
 
     double kval = 1.0;
-    unsigned int n_segments = this->state_dim/this->input_dim;
-    for (unsigned int i=0; i<n_segments; i++) {
+    int n_segments = this->state_dim/this->input_dim;
+    for (int i=(n_segments-1); i>=0; i--) {
         VectorXd diffxy = x.segment(i*this->input_dim, this->input_dim) -
                 y.segment(i*this->input_dim, this->input_dim);
         double val = 0.0;
