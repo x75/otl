@@ -19,11 +19,14 @@
 #include <string>
 #include <istream>
 #include <ostream>
+#include <vector>
+#include <fstream>
+
+namespace OTL {
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
-namespace OTL {
 
 class Kernel {
 public:

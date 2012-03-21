@@ -1,6 +1,6 @@
 /**
   Online Temporal Learning (OTL)
-  A header only library for online time-series learning. OTL was originally
+  A library for online time-series learning. OTL was originally
   created to implement the OESGP and STORKGP algorithms. It can be used/extended
   to create other novel online temporal learning algorithms. Its only dependecy
   is the Eigen C++ library.
@@ -34,10 +34,12 @@
 #include "otl_kernel_gaussian.h"
 #include "otl_kernel_recursive_gaussian.h"
 
+namespace OTL {
+
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
-
+}
 #endif
 
 

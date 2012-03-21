@@ -99,18 +99,5 @@ private:
 };
 
 
-/**
-  \brief initialises the kernel factory.
-  Change this function if you want to add more kernel types.
-  **/
-void initKernelFactory(KernelFactory &kfact) {
-    GaussianKernel gk;
-    RecursiveGaussianKernel rgk;
-
-    kfact.set(gk.getName(), &gk);
-    kfact.set(rgk.getName(), &rgk);
-}
-
-
 }
 #endif

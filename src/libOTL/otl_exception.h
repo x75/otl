@@ -15,6 +15,9 @@
 #ifndef OTL_EXCEPTION_43890928098790178928390128908493
 #define OTL_EXCEPTION_43890928098790178928390128908493
 
+#include <string>
+#include <iostream>
+
 class OTLException {
 public:
     OTLException(std::string error_msg) {

@@ -16,12 +16,14 @@
 #define OTL_AUGMENTED_STATE_H_283901790654792078109839078943267862190875436284789210
 
 #include "otl_exception.h"
+#include "eigen3/Eigen/Dense"
 #include <string>
+#include <fstream>
+
+namespace OTL {
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
-
-namespace OTL {
 
 /**
   \brief AugmentedState is a virtual class that specifies the necessary

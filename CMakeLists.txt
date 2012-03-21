@@ -22,28 +22,35 @@ endif()
 
 set(SOURCES src/libOTL/otl.h
     src/libOTL/otl_exception.h
+    src/libOTL/otl_helpers.h
+    src/libOTL/otl_helpers.cpp
     src/libOTL/otl_kernel.h
     src/libOTL/otl_kernel_factory.h
     src/libOTL/otl_kernel_gaussian.h
+    src/libOTL/otl_kernel_gaussian.cpp
     src/libOTL/otl_kernel_recursive_gaussian.h
+    src/libOTL/otl_kernel_recursive_gaussian.cpp
     src/libOTL/otl_learning_algs.h
     src/libOTL/otl_rls.h
+    src/libOTL/otl_rls.cpp
     src/libOTL/otl_aug_state.h
     src/libOTL/otl_reservoir.h
+    src/libOTL/otl_reservoir.cpp
     src/libOTL/otl_window.h
-    src/libOTL/otl_helpers.h
+    src/libOTL/otl_window.cpp
     src/libOTL/otl_sogp.h
+    src/libOTL/otl_sogp.cpp
     LICENSE.txt
 )
 
-
-
-#add_library(OTL ${SOURCES})
-
-#src/libOTL/otl.cpp src/libOTL/*.h)
+add_library(OTL ${SOURCES})
 
 include_directories(src/libotl)
 
-add_executable(otldemo src/main/otldemo.cpp ${SOURCES})
+add_executable(otldemo src/main/otldemo.cpp)
+
+target_link_libraries(otldemo OTL)
+
+
 
 

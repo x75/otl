@@ -4,11 +4,14 @@
 #include "otl_exception.h"
 #include <eigen3/Eigen/Dense>
 #include <string>
+#include <fstream>
+
+
+namespace OTL {
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
-namespace OTL {
 
 class LearningAlgorithm {
 public:
