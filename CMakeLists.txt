@@ -40,6 +40,8 @@ set(SOURCES src/libOTL/otl.h
     src/libOTL/otl_window.cpp
     src/libOTL/otl_sogp.h
     src/libOTL/otl_sogp.cpp
+    src/libOTL/otl_oesgp.h
+    src/libOTL/otl_oesgp.cpp
     LICENSE.txt
 )
 
