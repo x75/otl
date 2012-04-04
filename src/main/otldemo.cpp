@@ -17,12 +17,94 @@
 #include "otl_kernel_gaussian.h"
 #include "otl_kernel_factory.h"
 
+#include "otl_oesgp.h"
+
 #include <iostream>
 #include <cmath>
 
 using namespace OTL;
 using namespace std;
 
+void oesgpTest(void) {
+    OESGP oesgp;
+
+    int input_dim = 1;
+    int output_dim = 1;
+    int reservoir_size = 100;
+    double input_weight = 1.0;
+    double output_feedback_weight = 0.0;
+    int activation_function = Reservoir::TANH;
+    double leak_rate = 0.9;
+    double connectivity = 0.1;
+    double spectral_radius = 0.90;
+    bool use_inputs_in_state = false;
+    VectorXd kernel_parameters(2);
+    kernel_parameters << 1.0, 1.0;
+    double noise = 0.01;
+    double epsilon = 1e-3;
+    int capacity = 200;
+    int random_seed = 0;
+
+    oesgp.init( input_dim, output_dim, reservoir_size,
+                input_weight, output_feedback_weight,
+                activation_function,
+                leak_rate,
+                connectivity, spectral_radius,
+                use_inputs_in_state,
+                kernel_parameters,
+                noise, epsilon, capacity, random_seed);
+
+
+    //now we loop using a sine wave
+    unsigned int max_itr = 1000;
+    VectorXd input(1);
+    VectorXd output(1);
+
+    VectorXd state;
+    VectorXd prediction;
+    VectorXd prediction_variance;
+
+    for (unsigned int i=0; i<max_itr; i++) {
+        input(0) = sin(i*0.01);
+        output(0) = sin((i+1)*0.01);
+
+        //update
+        oesgp.update(input);
+
+        //predict
+        oesgp.predict(prediction, prediction_variance);
+        double error = (prediction - output).norm();
+        cout << "Error: " << error << ", |BV|: " << oesgp.getCurrentSize() <<  endl;
+
+
+        //train
+        oesgp.train(output);
+    }
+
+    cout << "Testing saving and loading model " << std::endl;
+    try {
+        OESGP oesgp2;
+        oesgp.save("oesgptest");
+        oesgp2.load("oesgptest");
+
+        for (unsigned int i=max_itr; i<max_itr+50; i++) {
+            input(0) = sin(i*0.01);
+            output(0) = sin((i+1)*0.01);
+
+            //update
+            oesgp2.update(input);
+
+            //predict
+            oesgp2.predict(prediction, prediction_variance);
+            double error = (prediction - output).norm();
+            cout << "Error: " << error << endl;
+        }
+
+    } catch (OTLException &e) {
+        e.showError();
+    }
+
+}
 
 void sinTestSTORKGP(void) {
     //let's create our window
@@ -535,11 +617,19 @@ void sinTestWRLS(void) {
 
 int main(int argc, char **argv) {
     try {
+        oesgpTest();
+    } catch (OTLException &e) {
+        e.showError();
+    }
+    return 0;
+
+
+    try {
         sinTestSOGPWin();
     } catch (OTLException &e) {
         e.showError();
     }
-    //return 0;
+    return 0;
 
 
     try {
