@@ -18,6 +18,7 @@
 #include "otl_kernel_factory.h"
 
 #include "otl_oesgp.h"
+#include "otl_storkgp.h"
 
 #include <iostream>
 #include <cmath>
@@ -107,39 +108,31 @@ void oesgpTest(void) {
 }
 
 void sinTestSTORKGP(void) {
-    //let's create our window
-    Window delay_window;
-    delay_window.init(1, 1, 10);
 
-    //let's create our learning algorithm
-    unsigned int state_dim = delay_window.getStateSize();
+    int input_dim = 1;
+    int output_dim = 1;
+    unsigned int tau = 30;
+
+    double noise = 0.0001;
+    double epsilon = 1e-4;
+    unsigned int capacity = 100;
 
     double l = 1.0;
     double rho = 0.99;
-    double alpha = 0.5;
-    double input_dim = 1;
+    double alpha = 1.0;
 
-    VectorXd params(4);
+    VectorXd kernel_parameters(4);
     //[l rho alpha input_dim]
-    params << l, rho, alpha, input_dim;
+    kernel_parameters << l, rho, alpha, input_dim;
 
-    RecursiveGaussianKernel rgk;
-    rgk.init(state_dim, params);
-
-    //create out kernel factory
-    KernelFactory kern_factory;
-    initKernelFactory(kern_factory);
-
-    SOGP sogp;
-    double noise = 0.0001;
-    double epsilon = 1e-3;
-    unsigned int capacity = 100;
-    unsigned int output_dim = 1;
-
-    sogp.init(state_dim, output_dim, rgk, noise, epsilon, capacity);
+    STORKGP storkgp;
+    storkgp.init(input_dim, output_dim,
+                 tau,
+                 kernel_parameters,
+                 noise, epsilon, capacity);
 
     //now we loop using a sine wave
-    unsigned int max_itr = 100;
+    unsigned int max_itr = 1000;
     VectorXd input(1);
     VectorXd output(1);
 
@@ -152,36 +145,33 @@ void sinTestSTORKGP(void) {
         output(0) = sin((i+1)*0.01);
 
         //update
-        delay_window.update(input);
+        storkgp.update(input);
 
         //predict
-        delay_window.getState(state);
-        sogp.predict(state, prediction, prediction_variance);
+        storkgp.predict(prediction, prediction_variance);
         double error = (prediction - output).norm();
-        cout << "Error: " << error << ", |BV|: " << sogp.getCurrentSize() <<  endl;
+        cout << "Error: " << error << ", |BV|: " << storkgp.getCurrentSize() <<  endl;
 
 
         //train
-        sogp.train(state, output);
+        storkgp.train(output);
     }
 
     cout << "Testing saving and loading model " << std::endl;
     try {
-        SOGP sogp2;
-        sogp.save("sogptest.model");
-        sogp2.setKernelFactory(kern_factory);
-        sogp2.load("sogptest.model");
+        STORKGP storkgp2;
+        storkgp.save("storkgptest");
+        storkgp2.load("storkgptest");
 
-        for (unsigned int i=max_itr; i<max_itr+50; i++) {
+        for (unsigned int i=max_itr; i<max_itr+100; i++) {
             input(0) = sin(i*0.01);
             output(0) = sin((i+1)*0.01);
 
             //update
-            delay_window.update(input);
+            storkgp2.update(input);
 
             //predict
-            delay_window.getState(state);
-            sogp2.predict(state, prediction, prediction_variance);
+            storkgp2.predict(prediction, prediction_variance);
             double error = (prediction - output).norm();
             cout << "Error: " << error << endl;
         }
@@ -616,13 +606,19 @@ void sinTestWRLS(void) {
 }
 
 int main(int argc, char **argv) {
+//    try {
+//        oesgpTest();
+//    } catch (OTLException &e) {
+//        e.showError();
+//    }
+//    return 0;
+
     try {
-        oesgpTest();
+        sinTestSTORKGP();
     } catch (OTLException &e) {
         e.showError();
     }
     return 0;
-
 
     try {
         sinTestSOGPWin();
@@ -631,13 +627,6 @@ int main(int argc, char **argv) {
     }
     return 0;
 
-
-    try {
-        sinTestSTORKGP();
-    } catch (OTLException &e) {
-        e.showError();
-    }
-    return 0;
 
     SOGPMultidimTest();
     return 0;

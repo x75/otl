@@ -49,6 +49,10 @@ public:
                 be < 1.0 but you can set it higher if you want.
       \param use_inputs_in_state do we want to use the inputs directly in
                 the state vector?
+      \param kernel_parameters kernel parameters for the recursive kernel
+      \param noise noise for SOGP
+      \param epsilon threshold for SOGP
+      \param capacity the capacity for the SOGP
       \param random_seed the random seed to initialise the reservoir. The same
                 random seed will generate the same reservoir.
       **/

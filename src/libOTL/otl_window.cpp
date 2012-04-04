@@ -57,8 +57,6 @@ void Window::save(std::string filename) {
     out.close();
 }
 
-
-
 void Window::load(std::string filename) {
     std::ifstream in;
     try {
@@ -73,8 +71,8 @@ void Window::load(std::string filename) {
     in >> this->output_dim;
     in >> this->window_length;
     in >> this->total_window_size;
-    readVectorFromStream(in, this->window);
     in >> this->initialized;
+    readVectorFromStream(in, this->window);
     in.close();
 }
 
