@@ -20,7 +20,8 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 
-set(SOURCES src/libOTL/otl.h
+set(OTL_SOURCES
+    src/libOTL/otl.h
     src/libOTL/otl_exception.h
     src/libOTL/otl_helpers.h
     src/libOTL/otl_helpers.cpp
@@ -47,7 +48,7 @@ set(SOURCES src/libOTL/otl.h
     LICENSE.txt
 )
 
-add_library(OTL ${SOURCES})
+add_library(OTL ${OTL_SOURCES})
 
 include_directories(src/libOTL)
 
@@ -55,6 +56,23 @@ add_executable(otldemo src/main/otldemo.cpp)
 
 target_link_libraries(otldemo OTL)
 
+
+FIND_PACKAGE(SWIG REQUIRED)
+INCLUDE(${SWIG_USE_FILE})
+
+FIND_PACKAGE(PythonLibs)
+set(INCLUDEDIRS ${PYTHON_INCLUDE_PATH} ${CMAKE_CURRENT_SOURCE_DIR} src/libOTL)
+INCLUDE_DIRECTORIES(${INCLUDEDIRS})
+#INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
+#INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+#INCLUDE_DIRECTORIES(src/libOTL)
+
+SET(CMAKE_SWIG_FLAGS "-classic")
+
+SET_SOURCE_FILES_PROPERTIES(otl_storkgp.i PROPERTIES CPLUSPLUS ON)
+SET_SOURCE_FILES_PROPERTIES(otl_storkgp.i PROPERTIES SWIG_FLAGS "-includeall")
+SWIG_ADD_MODULE(otl_storkgp python otl_storkgp.i src/libOTL/otl_storkgp.cpp)
+SWIG_LINK_LIBRARIES(otl_storkgp ${PYTHON_LIBRARIES} OTL)
 
 
 
