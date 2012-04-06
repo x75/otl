@@ -49,7 +49,7 @@ set(SOURCES src/libOTL/otl.h
 
 add_library(OTL ${SOURCES})
 
-include_directories(src/libotl)
+include_directories(src/libOTL)
 
 add_executable(otldemo src/main/otldemo.cpp)
 

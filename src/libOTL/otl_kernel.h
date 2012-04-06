@@ -21,6 +21,7 @@
 #include <ostream>
 #include <vector>
 #include <fstream>
+#include <typeinfo>
 
 namespace OTL {
 
