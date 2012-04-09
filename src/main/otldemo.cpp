@@ -115,7 +115,7 @@ void sinTestSTORKGP(void) {
 
     double noise = 0.0001;
     double epsilon = 1e-4;
-    unsigned int capacity = 500;
+    unsigned int capacity = 100;
 
     double l = 0.5;
     double rho = 0.99;
@@ -179,6 +179,13 @@ void sinTestSTORKGP(void) {
 
     } catch (OTLException &e) {
         e.showError();
+    }
+}
+
+
+void storkgpValgrindTest(void) {
+    for (unsigned int i=0; i<100; i++) {
+        sinTestSTORKGP();
     }
 }
 
@@ -607,6 +614,14 @@ void sinTestWRLS(void) {
 }
 
 int main(int argc, char **argv) {
+    try {
+        storkgpValgrindTest();
+    } catch (OTLException &e) {
+        e.showError();
+    }
+    return 0;
+
+
 //    try {
 //        oesgpTest();
 //    } catch (OTLException &e) {

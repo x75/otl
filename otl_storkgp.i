@@ -11,37 +11,19 @@
 namespace Eigen {
 //convert a list to a Eigen VectorXd
 %typemap(in) VectorXd& {
-	//PyList *list = new PyList($input);
+
 	int length = PyList_Size($input);
 	if (length < 0) {
 		length = 1;
 	}
 
 	VectorXd *temp = new VectorXd(length);
-	for (unsigned int i=0; i<length; i++) {
+    for (int i=0; i<length; i++) {
 		(*temp)[i] = PyFloat_AsDouble(PyList_GetItem($input, i));
 	}
 	$1 = temp;
-	//delete list;
+
 }
-
-
-
-//converts from a Eigen VectorXd to a list
-%typemap(argout) VectorXd& {
-	int length = (*$1).rows();
-	int input_length = PyList_Size($input);
-
-	if (length < 0) {
-		length = 1;
-	}
-
-	PyList_SetSlice($input, 0, input_length, NULL );
-	for (int i=0; i<length; i++) {
-		PyList_Append($input, PyFloat_FromDouble((*$1)[i]));
-	}
-}
-
 
 //convert a list to a Eigen MatrixXd
 %typemap(in) MatrixXd& {
@@ -57,17 +39,35 @@ namespace Eigen {
 		ncols = 1;
 	}
 
-	printf("%d %d\n", nrows, ncols);
+    //printf("%d %d\n", nrows, ncols);
 
 	MatrixXd *temp = new MatrixXd(nrows, ncols);
-	for (unsigned int i=0; i<nrows; i++) {
+    for (int i=0; i<nrows; i++) {
 		PyObject *list = PyList_GetItem($input, i);
-		for (unsigned int j=0; j<ncols; j++) {
+        for (int j=0; j<ncols; j++) {
 			(*temp)(i,j) = PyFloat_AsDouble(PyList_GetItem(list, j));
 		}
 	}
 	$1 = temp;
 	//delete list;
+}
+
+//converts from a Eigen VectorXd to a list
+%typemap(argout) VectorXd& {
+    int length = (*$1).rows();
+    int input_length = PyList_Size($input);
+
+    if (length < 0) {
+        length = 1;
+    }
+
+    PyList_SetSlice($input, 0, input_length, NULL );
+    for (int i=0; i<length; i++) {
+        //PyObject *val = SWIG_NewPointerObj(PyFloat_FromDouble((*$1)[i]), SWIGtype, 1);
+        PyObject *val = PyFloat_FromDouble((*$1)[i]);
+        PyList_Append($input, val);
+        Py_DECREF(val);
+    }
 }
 
 //converts from a Eigen MatrixXd to a list
@@ -84,12 +84,15 @@ namespace Eigen {
 
 	PyList_SetSlice($input, 0, input_length, NULL );
 
-	for (unsigned int i=0; i<nrows; i++) {
+    for (int i=0; i<nrows; i++) {
 		PyObject *list = PyList_New(ncols);
-		for (unsigned int j=0; j<ncols; j++) {
-			PyList_SetItem(list, j, PyFloat_FromDouble((*$1)(i,j)));
+        for (int j=0; j<ncols; j++) {
+            PyObject *val = PyFloat_FromDouble((*$1)(i,j));
+            PyList_SetItem(list, j, val);
+            Py_DECREF(val);
 		}
 		PyList_Append($input, list);
+        Py_DECREF(list);
 	}
 }
 
@@ -108,10 +111,19 @@ namespace Eigen {
 class STORKGP {
 public:
     /**
+        types of kernels
+       **/
+    enum {
+        RECURSIVE_GAUSSIAN = 0,
+        RECURSIVE_EQUALITY_GAUSSIAN = 1
+    };
+
+    /**
       \brief Sets up the reservoir
       \param input_dim the input dimension
       \param output_dim the output dimension
       \param tau window size for approximation
+      \param kernel_type the type of kernel (enum)
       \param kernel_parameters kernel parameters for the recursive kernel
       \param noise noise for SOGP
       \param epsilon threshold for SOGP
@@ -121,6 +133,7 @@ public:
             unsigned int input_dim,
             unsigned int output_dim,
             unsigned int tau,
+            int kernel_type,
             VectorXd &kernel_parameters,
             double noise,
             double epsilon,

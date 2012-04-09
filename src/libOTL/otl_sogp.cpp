@@ -230,6 +230,7 @@ void SOGP::reset() {
     this->alpha = MatrixXd::Zero(this->capacity+1, this->output_dim);
     this->C = MatrixXd::Zero(this->capacity+1, this->capacity+1);
     this->Q = MatrixXd::Zero(this->capacity+1, this->capacity+1);
+    this->current_size = 0;
 
     this->initialized = true;
     return;
