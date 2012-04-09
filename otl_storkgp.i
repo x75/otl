@@ -1,8 +1,10 @@
 %module otl_storkgp
  %{
- /* Includes the header in the wrapper code */
-#include "otl_storkgp.h"
-using namespace OTL;
+    /* Includes the header in the wrapper code */
+    #include "otl_storkgp.h"
+    using namespace OTL;
+    using Eigen::VectorXd;
+    using Eigen::MatrixXd;
  %}
 
 

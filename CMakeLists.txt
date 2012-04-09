@@ -31,6 +31,8 @@ set(OTL_SOURCES
     src/libOTL/otl_kernel_gaussian.cpp
     src/libOTL/otl_kernel_recursive_gaussian.h
     src/libOTL/otl_kernel_recursive_gaussian.cpp
+    src/libOTL/otl_kernel_recursive_equality_gaussian.h
+    src/libOTL/otl_kernel_recursive_equality_gaussian.cpp
     src/libOTL/otl_learning_algs.h
     src/libOTL/otl_rls.h
     src/libOTL/otl_rls.cpp

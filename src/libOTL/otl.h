@@ -33,6 +33,7 @@
 #include "otl_kernel.h"
 #include "otl_kernel_gaussian.h"
 #include "otl_kernel_recursive_gaussian.h"
+#include "otl_kernel_recursive_equality_gaussian.h"
 
 namespace OTL {
 

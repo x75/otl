@@ -110,8 +110,11 @@ void readVectorFromStream(std::istream &in, VectorXd &A) {
 void initKernelFactory(KernelFactory &kfact) {
     GaussianKernel gk;
     RecursiveGaussianKernel rgk;
+    RecursiveEqualityGaussianKernel regk;
 
     kfact.set(gk.getName(), &gk);
     kfact.set(rgk.getName(), &rgk);
+    kfact.set(regk.getName(), &regk);
 }
+
 }

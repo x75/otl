@@ -111,13 +111,13 @@ void sinTestSTORKGP(void) {
 
     int input_dim = 1;
     int output_dim = 1;
-    unsigned int tau = 30;
+    unsigned int tau = 20;
 
     double noise = 0.0001;
     double epsilon = 1e-4;
-    unsigned int capacity = 100;
+    unsigned int capacity = 500;
 
-    double l = 1.0;
+    double l = 0.5;
     double rho = 0.99;
     double alpha = 1.0;
 
@@ -128,6 +128,7 @@ void sinTestSTORKGP(void) {
     STORKGP storkgp;
     storkgp.init(input_dim, output_dim,
                  tau,
+                 STORKGP::RECURSIVE_GAUSSIAN,
                  kernel_parameters,
                  noise, epsilon, capacity);
 

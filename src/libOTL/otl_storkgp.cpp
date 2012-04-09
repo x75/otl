@@ -8,6 +8,7 @@ namespace OTL {
   \param input_dim the input dimension
   \param output_dim the output dimension
   \param tau window size for approximation
+  \param kernel_type the type of kernel (enum)
   \param kernel_parameters kernel parameters for the recursive kernel
   \param noise noise for SOGP
   \param epsilon thwindowhold for SOGP
@@ -17,6 +18,7 @@ void STORKGP::init(
         unsigned int input_dim,
         unsigned int output_dim,
         unsigned int tau,
+        int kernel_type,
         VectorXd &kernel_parameters,
         double noise,
         double epsilon,
@@ -26,10 +28,19 @@ void STORKGP::init(
 
     window.init(input_dim, output_dim, tau);
 
-    rec_gaussian_kernel.init(window.getStateSize(), kernel_parameters);
+    switch (kernel_type) {
+    case RECURSIVE_GAUSSIAN:
+        rec_gaussian_kernel.init(window.getStateSize(), kernel_parameters);
+        sogp.init(window.getStateSize(), output_dim, rec_gaussian_kernel,
+                  noise, epsilon, capacity);
+        break;
+    case RECURSIVE_EQUALITY_GAUSSIAN:
+        rec_equality_gaussian_kernel.init(window.getStateSize(), kernel_parameters);
+        sogp.init(window.getStateSize(), output_dim, rec_equality_gaussian_kernel,
+                  noise, epsilon, capacity);
+        break;
+    }
 
-    sogp.init(window.getStateSize(), output_dim, rec_gaussian_kernel,
-              noise, epsilon, capacity);
 }
 
 /**

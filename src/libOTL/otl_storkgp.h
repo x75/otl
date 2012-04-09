@@ -24,6 +24,8 @@
 
 #include "otl_window.h"
 #include "otl_sogp.h"
+#include "otl_kernel_recursive_equality_gaussian.h"
+#include "otl_kernel_recursive_gaussian.h"
 
 namespace OTL {
 
@@ -33,10 +35,19 @@ using Eigen::VectorXd;
 class STORKGP {
 public:
     /**
+        types of kernels
+       **/
+    enum {
+        RECURSIVE_GAUSSIAN = 0,
+        RECURSIVE_EQUALITY_GAUSSIAN = 1
+    };
+
+    /**
       \brief Sets up the reservoir
       \param input_dim the input dimension
       \param output_dim the output dimension
       \param tau window size for approximation
+      \param kernel_type the type of kernel (enum)
       \param kernel_parameters kernel parameters for the recursive kernel
       \param noise noise for SOGP
       \param epsilon threshold for SOGP
@@ -46,6 +57,7 @@ public:
             unsigned int input_dim,
             unsigned int output_dim,
             unsigned int tau,
+            int kernel_type,
             VectorXd &kernel_parameters,
             double noise,
             double epsilon,
@@ -121,6 +133,7 @@ public:
 private:
     Window window;
     RecursiveGaussianKernel rec_gaussian_kernel;
+    RecursiveEqualityGaussianKernel rec_equality_gaussian_kernel;
     SOGP sogp;
 };
 
