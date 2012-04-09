@@ -199,9 +199,9 @@ void sinTestSOGPWin(void) {
     unsigned int state_dim = delay_window.getStateSize();
 
     double l = 1.0;
-    double rho = 0.99;
+    //double rho = 0.99;
     double alpha = 0.5;
-    double input_dim = 1;
+    //double input_dim = 1;
 
     VectorXd params(2);
     //[l rho alpha input_dim]
@@ -613,7 +613,7 @@ void sinTestWRLS(void) {
     }
 }
 
-int main(int argc, char **argv) {
+int main(void) {
     try {
         storkgpValgrindTest();
     } catch (OTLException &e) {
