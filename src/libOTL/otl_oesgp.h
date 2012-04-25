@@ -40,7 +40,7 @@ public:
       \param input_weight How much to weight your inputs (typically 1)
       \param output_feedback_weight Set this >0 if you want output feedback
                 with the specified weighting
-      \param activation function only OTLParams::TANH is supported for now.
+      \param activation function 0 for TANH, 1 for Linear
       \param leak_rate the leak rate (between 0 and 1.0) of the reservoir
                 (depends on your application)
       \param connectivity connectivity of the reservoir (between 0 and 1.0).
@@ -49,7 +49,7 @@ public:
                 be < 1.0 but you can set it higher if you want.
       \param use_inputs_in_state do we want to use the inputs directly in
                 the state vector?
-      \param kernel_parameters kernel parameters for the recursive kernel
+      \param kernel_parameters kernel parameters for the gaussian kernel
       \param noise noise for SOGP
       \param epsilon threshold for SOGP
       \param capacity the capacity for the SOGP

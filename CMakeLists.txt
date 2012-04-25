@@ -58,7 +58,7 @@ add_executable(otldemo src/main/otldemo.cpp)
 
 target_link_libraries(otldemo OTL)
 
-
+#SWIG Bindings
 FIND_PACKAGE(SWIG REQUIRED)
 INCLUDE(${SWIG_USE_FILE})
 
@@ -71,10 +71,16 @@ INCLUDE_DIRECTORIES(${INCLUDEDIRS})
 
 SET(CMAKE_SWIG_FLAGS "-classic")
 
+#STORK-GP Python Bindings
 SET_SOURCE_FILES_PROPERTIES(otl_storkgp.i PROPERTIES CPLUSPLUS ON)
 SET_SOURCE_FILES_PROPERTIES(otl_storkgp.i PROPERTIES SWIG_FLAGS "-includeall")
 SWIG_ADD_MODULE(otl_storkgp python otl_storkgp.i src/libOTL/otl_storkgp.cpp)
 SWIG_LINK_LIBRARIES(otl_storkgp ${PYTHON_LIBRARIES} OTL)
 
+#OESGP Python Bindings
+SET_SOURCE_FILES_PROPERTIES(otl_oesgp.i PROPERTIES CPLUSPLUS ON)
+SET_SOURCE_FILES_PROPERTIES(otl_oesgp.i PROPERTIES SWIG_FLAGS "-includeall")
+SWIG_ADD_MODULE(otl_oesgp python otl_oesgp.i src/libOTL/otl_oesgp.cpp)
+SWIG_LINK_LIBRARIES(otl_oesgp ${PYTHON_LIBRARIES} OTL)
 
 

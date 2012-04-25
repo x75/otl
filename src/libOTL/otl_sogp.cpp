@@ -228,6 +228,7 @@ void SOGP::predict(const VectorXd &state, VectorXd &prediction,
 
 void SOGP::reset() {
     this->alpha = MatrixXd::Zero(this->capacity+1, this->output_dim);
+    this->basis_vectors.clear();
     this->C = MatrixXd::Zero(this->capacity+1, this->capacity+1);
     this->Q = MatrixXd::Zero(this->capacity+1, this->capacity+1);
     this->current_size = 0;
