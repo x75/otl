@@ -15,7 +15,7 @@ if(MSVC)
 elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
  # Update if necessary
  list(APPEND CMAKE_CXX_FLAGS
-   "-Wall -Wextra"
+   "-Wall -Wextra -fPIC"
    )
 endif()
 
