@@ -19,6 +19,9 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
    )
 endif()
 
+#Add cmake modules to cmake path
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeResources")
+
 
 set(OTL_SOURCES
     src/libOTL/otl.h
@@ -58,6 +61,15 @@ add_executable(otldemo src/main/otldemo.cpp)
 
 target_link_libraries(otldemo OTL)
 
+#DOXYGEN
+
+set( PROJECT_VERSION ${0.1} )
+set( DOXYFILE_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/doc" )
+set( DOXYFILE_LATEX OFF )
+set( DOXYFILE_IN "${PROJECT_SOURCE_DIR}/Doxyfile.in")
+include(UseDoxygen OPTIONAL)
+
+
 #SWIG Bindings
 FIND_PACKAGE(SWIG REQUIRED)
 INCLUDE(${SWIG_USE_FILE})
@@ -82,5 +94,4 @@ SET_SOURCE_FILES_PROPERTIES(otl_oesgp.i PROPERTIES CPLUSPLUS ON)
 SET_SOURCE_FILES_PROPERTIES(otl_oesgp.i PROPERTIES SWIG_FLAGS "-includeall")
 SWIG_ADD_MODULE(otl_oesgp python otl_oesgp.i src/libOTL/otl_oesgp.cpp)
 SWIG_LINK_LIBRARIES(otl_oesgp ${PYTHON_LIBRARIES} OTL)
-
 
