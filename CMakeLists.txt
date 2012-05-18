@@ -57,9 +57,14 @@ add_library(OTL ${OTL_SOURCES})
 
 include_directories(src/libOTL)
 
-add_executable(otldemo src/main/otldemo.cpp)
+add_executable(oesgp_sin src/examples/oesgp_sin.cpp)
 
-target_link_libraries(otldemo OTL)
+target_link_libraries(oesgp_sin OTL)
+
+add_executable(storkgp_sin src/examples/storkgp_sin.cpp)
+
+target_link_libraries(storkgp_sin OTL)
+
 
 #DOXYGEN
 
