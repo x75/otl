@@ -42,9 +42,6 @@ int main(void) {
     //[l rho alpha input_dim]
     kernel_parameters << l, rho, alpha, input_dim;
 
-    //Create our STORKGP object
-
-
 
     try {
         //Initialise our STORKGP
