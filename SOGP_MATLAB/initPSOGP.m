@@ -1,4 +1,4 @@
-function [ psogp ] = initPSOGP( params, kernFunc, kernParams )
+function [ psogp ] = initPSOGP( params, kernFunc, kernParams, problemType )
 %TRAIN_PSOGP Summary of this function goes here
 %   Detailed explanation goes here
     psogp = struct();
@@ -11,5 +11,9 @@ function [ psogp ] = initPSOGP( params, kernFunc, kernParams )
     
     psogp.alpha = 0;
     psogp.C = 0;
+    
+    %problemType is 'regression' or 'classification'
+    psogp.type = problemType;
+    
 end
 
