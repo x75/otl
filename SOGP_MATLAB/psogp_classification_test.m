@@ -5,18 +5,18 @@ N = 1000;
 %centres = [2.0 2.0; -2.0 -2.0]
 
 X = [rand(N,1)*2 - 1 rand(N,1)*2 - 1];
-Y = sign(X(:,1) + X(:,2));
+Y = (X(:,1).^2 + X(:,2).^2 < 0.5^2).*2 - 1
 
-%return
+
 
 %plot(X); hold on; plot(Y,'g');
 
 %initialise the PSOGP
-capacity = 100;
+capacity = 500;
 noise = 1.0;
 epsilon = 1e-5;
 kernFunc = @kern_gaussian;
-kernParams = [1.0 0.001 0.0];
+kernParams = [0.5 0.001 0.0];
 
 gp_params = [capacity, noise, epsilon];
 

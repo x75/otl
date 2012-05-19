@@ -38,8 +38,8 @@
             dErfz = 1.0/sqrt(2*pi)*exp(-(z^2)/2);
             dErfz2 = dErfz*(-z);
             
-            q = y/sx * (dErfz/Erfz)
-            r = (1/sx2)*(dErfz2/dErfz - (dErfz/Erfz)^2)
+            q = y/sx * (dErfz/Erfz);
+            r = (1/sx2)*(dErfz2/dErfz - (dErfz/Erfz)^2);
         end
             
         ehat = Q*k;
