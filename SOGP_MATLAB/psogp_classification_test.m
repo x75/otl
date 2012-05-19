@@ -1,14 +1,19 @@
 %let's generate some simple test (sine wave)
 clear();
-N = 500;
+N = 1000;
+
+%centres = [2.0 2.0; -2.0 -2.0]
+
 X = [rand(N,1)*2 - 1 rand(N,1)*2 - 1];
-Y = sign(X(:,1) + X(:,2))
+Y = sign(X(:,1) + X(:,2));
+
+%return
 
 %plot(X); hold on; plot(Y,'g');
 
 %initialise the PSOGP
 capacity = 100;
-noise = 0.1;
+noise = 1.0;
 epsilon = 1e-5;
 kernFunc = @kern_gaussian;
 kernParams = [1.0 0.001 0.0];
@@ -20,15 +25,19 @@ psogp = initPSOGP(gp_params, kernFunc, kernParams, 'c');
 
 %for each data item, add it to the PSOGP
 for i=1:N %size(X,1)
-   [y_pred(i), y_var(i)] = predictPSOGP(X(i), psogp);
-   psogp = addToPSOGP(X(i), Y(i), psogp);
+   [y_pred(i), y_var(i)] = predictPSOGP(X(i,:), psogp);
+   
+   psogp = addToPSOGP(X(i,:), Y(i), psogp);
    size(psogp.phi)
 end
 
 wrong_ones = find(y_pred.' ~= Y)
-positives = find(y_pred.' == 1);
-negatives = find(y_pred.' == -1);
+positives = find(Y == 1);
+negatives = find(Y == -1);
 scatter(X(positives,1), X(positives,2) , 'g+'); hold on;
 scatter(X(negatives,1), X(negatives,2), 'ko');
 scatter(X(wrong_ones,1), X(wrong_ones,2), 'r*');
+error_rate = size(wrong_ones,1)/N
+y_var(wrong_ones)
+
 hold off;

@@ -15,11 +15,11 @@ function [ pred_mean, pred_var ] = predictPSOGP( x, psogp )
         pred_mean = k'*psogp.alpha;
         pred_var = psogp.noise + kstar + k'*(psogp.C*k);
     elseif psogp.type == 'c'
-        pred_mean = k'*psogp.alpha
-        pred_var = psogp.noise + kstar + k'*(psogp.C*k)
-        psogp.C
-        sx = sqrt((pred_var))
-        z = pred_mean/sx
+        pred_mean = k'*psogp.alpha;
+        pred_var = psogp.noise + kstar + k'*(psogp.C*k);
+        
+        sx = sqrt((pred_var));
+        z = pred_mean/sx;
         
         Erfz = Erf(z);
         pred_mean = round(Erfz)*2 - 1;
