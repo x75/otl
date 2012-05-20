@@ -15,7 +15,7 @@ kernParams = [1.0 0.9 0.0];
 gp_params = [capacity, noise, epsilon];
 
 %'r' is for regression, 'c' is for classification
-psogp = initPSOGP(gp_params, kernFunc, kernParams, 'r');
+psogp = initPSOGP(gp_params, kernFunc, kernParams, 'r', 'n');
 
 %for each data item, add it to the PSOGP
 for i=1:100 %size(X,1)

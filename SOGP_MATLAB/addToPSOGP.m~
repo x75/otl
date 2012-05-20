@@ -40,7 +40,6 @@
             
             q = y/sx * (dErfz/Erfz);
             r = (1/sx2)*(dErfz2/dErfz - (dErfz/Erfz)^2);
-
         end
             
         ehat = Q*k;
@@ -91,10 +90,21 @@
     %basis vector deletion
     len_phi = length(psogp.phi);   
     if (len_phi > psogp.capacity)
-        %score
+        %scores
         for i = 1:len_phi
-            score(i) = norm(alpha(i,:))^2/ (Q(i,i) + C(i,i));
+            scores(i,:) = (alpha(i,:))^2/ (Q(i,i) + C(i,i));
         end
+        
+        if psogp.deletion_criteria == 'n'
+            for i = 1:len_phi
+                score(i) = norm(scores(i,:));
+            end
+        elseif psogp.deletion_criteria == 'm'
+            for i = 1:len_phi
+                score(i) = max(scores(i,:));
+            end
+        end
+        
         [min_val, min_index] = min(score);
         psogp = deleteFromPSOGP( min_index, psogp );
     end

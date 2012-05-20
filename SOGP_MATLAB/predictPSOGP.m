@@ -22,11 +22,16 @@ function [ pred_mean, pred_var ] = predictPSOGP( x, psogp )
         z = pred_mean/sx;
         
         Erfz = Erf(z);
-        if Erfz > 0.5
-            pred_mean = 1;
-        else
-            pred_mean = -1;
+        
+        for i=1:size(Erfz,2)
+            if Erfz(:,i) > 0.5
+                pred_mean(:,i) = 1;
+            else
+                pred_mean(:,i) = -1;
+            end            
         end
+        pred_mean;
+
         pred_var = Erfz;
     end
     

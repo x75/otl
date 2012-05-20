@@ -31,12 +31,12 @@
         elseif psogp.type == 'c'
             sx2 = psogp.noise + s2;
             sx = sqrt(sx2);
-            z = y*m/sx;
+            z = y.*m./sx;
             
             Erfz = Erf(z);
             
-            dErfz = 1.0/sqrt(2*pi)*exp(-(z^2)/2);
-            dErfz2 = dErfz*(-z);
+            dErfz = 1.0/sqrt(2*pi)*exp(-(z.^2)/2);
+            dErfz2 = dErfz.*(-z);
             
             q = y/sx * (dErfz/Erfz);
             r = (1/sx2)*(dErfz2/dErfz - (dErfz/Erfz)^2);
@@ -67,8 +67,7 @@
 
             Q = Q + (1/gamma)*(ehat*ehat.');
             
-            alpha(end+1) = 0;
-            alpha = alpha(:);
+            alpha(end+1,:) = 0;
 
             alpha = alpha + (s*q);
             C(end+1, end+1) = 0;
@@ -77,7 +76,9 @@
 
             %sparse update
             s = C*k +ehat;
-            alpha = alpha + s*(q*eta).';
+
+            alpha = alpha + s*(q*eta);
+
             C = C+r*eta*(s*s.');
         end
         
@@ -90,10 +91,21 @@
     %basis vector deletion
     len_phi = length(psogp.phi);   
     if (len_phi > psogp.capacity)
-        %score
+        %scores
         for i = 1:len_phi
-            score(i) = norm(alpha(i,:))^2/ (Q(i,i) + C(i,i));
+            scores(i,:) = (alpha(i,:)).^2/ (Q(i,i) + C(i,i));
         end
+        
+        if psogp.deletion_criteria == 'n'
+            for i = 1:len_phi
+                score(i) = norm(scores(i,:));
+            end
+        elseif psogp.deletion_criteria == 'm'
+            for i = 1:len_phi
+                score(i) = max(scores(i,:));
+            end
+        end
+        
         [min_val, min_index] = min(score);
         psogp = deleteFromPSOGP( min_index, psogp );
     end
