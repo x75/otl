@@ -38,14 +38,15 @@
             dErfz = 1.0/sqrt(2*pi)*exp(-(z.^2)/2);
             dErfz2 = dErfz.*(-z);
             
-            q = y/sx * (dErfz/Erfz);
-            r = (1/sx2)*(dErfz2/dErfz - (dErfz/Erfz)^2);
+            q = y./sx .* (dErfz./Erfz);
+            r = (1/sx2)*(dErfz2/dErfz - (dErfz/Erfz)^2)
+            %r = r(1);
         end
             
         ehat = Q*k;
 
         gamma = kstar - dot(k,ehat);
-        eta = 1.0/(1.0 + gamma*r);
+        eta = 1.0./(1.0 + gamma*r);
         if (gamma < 1e-12 )
             fprintf(1, 'gamma stability: %f\n', gamma);
             gamma = 0;

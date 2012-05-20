@@ -19,6 +19,9 @@ SOGP::SOGP(SOGP &rhs) : LearningAlgorithm() {
     this->capacity = rhs.capacity;
     this->current_size = rhs.current_size;
 
+    this->problem_type = rhs.problem_type;
+    this->deletion_criteria = rhs.deletion_criteria;
+
     //initialise the matrices : not that the capacity is +1 since
     //we allow it to grow one more before reducing.
     this->alpha = rhs.alpha;
@@ -44,10 +47,21 @@ void SOGP::train(const VectorXd &state, const VectorXd &output) {
 
     double kstar = this->kernel->eval(state);
 
+    //change the output format if this is a classification problem
+    VectorXd mod_output;
+    if (this->problem_type == SOGP::CLASSIFICATION) {
+        mod_output = VectorXd::Zero(this->output_dim);
+        for (unsigned int i=0; i<this->output_dim; i++) {
+            mod_output(i) = -1;
+        }
+        mod_output(output(0)) = 1;
+    } else {
+        mod_output = output;
+    }
+
     //we are just starting.
     if (this->current_size == 0) {
-
-        this->alpha.block(0,0,1, this->output_dim) = (output.array() / (kstar + this->noise)).transpose();
+        this->alpha.block(0,0,1, this->output_dim) = (mod_output.array() / (kstar + this->noise)).transpose();
         this->C.block(0,0,1,1) = VectorXd::Ones(1)*-1/(kstar + this->noise);
         this->Q.block(0,0,1,1) = VectorXd::Ones(1)*1/(kstar);
         this->basis_vectors.push_back(state);
@@ -69,8 +83,39 @@ void SOGP::train(const VectorXd &state, const VectorXd &output) {
         s2 = 1e-12;
     }
 
-    double r = -1.0/(s2 + this->noise);
-    VectorXd q = (output - m)*(-r);
+    double r;
+    VectorXd q;
+
+    if (this->problem_type == SOGP::REGRESSION) {
+        r = -1.0/(s2 + this->noise);
+        q = (mod_output - m)*(-r);
+    } else if (this->problem_type == SOGP::CLASSIFICATION) {
+
+        double sx2 = this->noise + s2;
+        double sx = sqrt(sx2);
+        VectorXd z = VectorXd(this->output_dim);
+        VectorXd Erfz = VectorXd(this->output_dim);
+        for (unsigned int i=0; i<this->output_dim; i++) {
+            z(i) = mod_output(i) * m(i) / sx;
+            Erfz(i) = stdnormcdf(z(i));
+            dErfz(i) = 1.0/sqrt(2*M_PI)*exp(-(z(i)*z(i))/2.0);
+            dErfz2(i) = dErfz(i)*(-z(i));
+        }
+
+        /*
+          TO CONNTINUE
+        Erfz = Erf(z);
+
+        dErfz = 1.0/sqrt(2*pi)*exp(-(z.^2)/2);
+        dErfz2 = dErfz.*(-z);
+
+        q = y/sx * (dErfz/Erfz);
+        r = (1/sx2)*(dErfz2/dErfz - (dErfz/Erfz)^2);
+
+        */
+    } else {
+        throw OTL::OTLException("Whoops! My problem type is wrong. How did this happen?");
+    }
     VectorXd ehat = this->Q.block(0,0, this->current_size, this->current_size)*k;
 
     double gamma = kstar - k.dot(ehat);
@@ -197,7 +242,7 @@ void SOGP::reduceBasisVectorSet(unsigned int index) {
 }
 
 void SOGP::predict(const VectorXd &state, VectorXd &prediction,
-                  VectorXd &prediction_variance) {
+                   VectorXd &prediction_variance) {
     //check if we have initialised the system
     if (!this->initialized) {
         throw OTLException("SOGP not yet initialised");
@@ -256,6 +301,10 @@ void SOGP::save(std::string filename) {
     out << this->epsilon << std::endl;
     out << this->capacity << std::endl;
     out << this->current_size << std::endl;
+
+    out << this->problem_type << std::endl;
+    out << this->deletion_criteria << std::endl;
+
     out << this->initialized << std::endl;
 
     //initialise the matrices : not that the capacity is +1 since
@@ -298,6 +347,10 @@ void SOGP::load(std::string filename, const KernelFactory &kernel_factory) {
     in >> this->epsilon;
     in >> this->capacity;
     in >> this->current_size;
+
+    in >> this->problem_type;
+    in >> this->deletion_criteria;
+
     in >> this->initialized;
 
     readMatrixFromStream(in, this->alpha);
@@ -318,7 +371,10 @@ void SOGP::init(unsigned int state_dim, unsigned int output_dim,
                 Kernel &kernel,
                 double noise,
                 double epsilon,
-                unsigned int capacity) {
+                unsigned int capacity,
+                int problem_type,
+                int deletion_criteria
+                ) {
 
     this->kernel = kernel.createCopy();
     this->state_dim = state_dim;
@@ -327,6 +383,23 @@ void SOGP::init(unsigned int state_dim, unsigned int output_dim,
     this->epsilon = epsilon;
     this->capacity = capacity;
     this->current_size = 0;
+
+    this->problem_type = problem_type;
+    this->deletion_criteria = deletion_criteria;
+
+    if ((this->problem_type != SOGP::CLASSIFICATION) && (this->problem_type != SOGP::REGRESSION)) {
+        throw OTL::OTLException("The problem has to be of SOGP::CLASSIFICATION or SOGP::REGRESSION");
+    }
+
+    if ((this->deletion_criteria != SOGP::NORM) && (this->deletion_criteria != SOGP::MINIMAX)) {
+        throw OTL::OTLException("The deletion criteria has to be either SOGP::NORM or SOGP::MINIMAX");
+    }
+
+    if (this->problem_type == SOGP::CLASSIFICATION) {
+        if (this->output_dim < 1) {
+            throw OTL::OTLException("You need at least one class for classification");
+        }
+    }
 
     //initialise the matrices : not that the capacity is +1 since
     //we allow it to grow one more before reducing.

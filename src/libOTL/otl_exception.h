@@ -18,6 +18,8 @@
 #include <string>
 #include <iostream>
 
+namespace OTL {
+
 class OTLException {
 public:
     OTLException(std::string error_msg) {
@@ -29,6 +31,6 @@ public:
 private:
     std::string error_msg;
 };
-
+}
 
 #endif

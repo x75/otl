@@ -1,6 +1,6 @@
 %let's generate some simple test (sine wave)
 clear();
-N = 3000;
+N = 1000;
 
 %centres = [2.0 2.0; -2.0 -2.0]
 rand('twister',6657);

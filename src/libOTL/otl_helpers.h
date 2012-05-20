@@ -62,6 +62,11 @@ void readVectorFromStream(std::istream &in, VectorXd &A);
   **/
 void initKernelFactory(KernelFactory &kfact);
 
+/**
+  \brief computes the standard normal cumulative distribution function at z
+  **/
+double stdnormcdf(double x);
+
 }
 
 #endif

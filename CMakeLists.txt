@@ -72,7 +72,7 @@ set( PROJECT_VERSION ${0.1} )
 set( DOXYFILE_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/doc" )
 set( DOXYFILE_LATEX OFF )
 set( DOXYFILE_IN "${PROJECT_SOURCE_DIR}/Doxyfile.in")
-include(UseDoxygen OPTIONAL)
+#include(UseDoxygen OPTIONAL)
 
 
 #SWIG Bindings

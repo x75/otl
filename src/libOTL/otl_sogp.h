@@ -36,6 +36,16 @@ using Eigen::VectorXd;
 
 class SOGP : public LearningAlgorithm {
 public:
+    /**
+      \brief choice of regression or classification mode
+      **/
+    enum { REGRESSION, CLASSIFICATION };
+
+    /**
+      \brief deletion of basis vector criteria
+      **/
+    enum { NORM, MINIMAX};
+
     SOGP();
     SOGP(SOGP &rhs);
     ~SOGP();
@@ -83,16 +93,22 @@ public:
       \brief Initialises the SOGP
       \param state_dim how big is the state that we want to regress from
       \param output_dim how big is the output state
+            (the number of classes if the problem type is CLASSIFICATION)
       \param kernel an OTL::Kernel object with the kernel you want to use
       \param noise the noise parameter (application dependent)
       \param epsilon threshold parameter (typically small 1e-4)
       \param capacity the capacity of the SOGP (application dependent)
+      \param problem_type SOGP::REGRESSION or SOGP::CLASSIFICATION
+      \param deletion_criteria SOGP::NORM or SOGP::MINIMAX (this also applies for
+                multi-dimensional outputs)
       **/
     virtual void init(unsigned int state_dim, unsigned int output_dim,
                       Kernel &kernel,
                       double noise,
                       double epsilon,
-                      unsigned int capacity);
+                      unsigned int capacity,
+                      int problem_type = SOGP::REGRESSION,
+                      int deletion_criteria = SOGP::NORM);
 
 
     /**
@@ -114,6 +130,9 @@ private:
     unsigned int state_dim;
     unsigned int output_dim;
     unsigned int current_size;
+
+    int problem_type;
+    int deletion_criteria;
 
     Kernel *kernel;
     KernelFactory kernel_factory;
