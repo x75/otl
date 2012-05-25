@@ -25,23 +25,10 @@
             s2 = 1e-12;
         end
         
-        if psogp.type == 'r'
-            r = -1.0/(s2 + psogp.noise);
-            q = -r*(y - m);
-        elseif psogp.type == 'c'
-            sx2 = psogp.noise + s2;
-            sx = sqrt(sx2);
-            z = y.*m./sx;
-            
-            Erfz = Erf(z);
-            
-            dErfz = 1.0/sqrt(2*pi)*exp(-(z.^2)/2);
-            dErfz2 = dErfz.*(-z);
-            
-            q = y./sx .* (dErfz./Erfz);
-            r = (1/sx2)*(dErfz2/dErfz - (dErfz/Erfz)^2)
-            %r = r(1);
-        end
+
+        r = -1.0/(s2 + psogp.noise);
+        q = -r*(y - m);
+
             
         ehat = Q*k;
 
@@ -70,6 +57,7 @@
             
             alpha(end+1,:) = 0;
 
+            
             alpha = alpha + (s*q);
             C(end+1, end+1) = 0;
             C = C+r*(s*s.');

@@ -1,5 +1,5 @@
 function [ psogp ] = initPSOGP_C( params, kernFunc, kernParams, ... 
-    problemType, deletionCriteria, num_classes)
+    num_classes, deletionCriteria )
 %TRAIN_PSOGP Summary of this function goes here
 %   Detailed explanation goes here
     psogp = struct();
@@ -13,10 +13,7 @@ function [ psogp ] = initPSOGP_C( params, kernFunc, kernParams, ...
     
     psogp.alpha = {};
     psogp.C = {};
-    
-    %problemType is 'r' (regression) or 'c' (classification)
-    psogp.type = problemType;
-    
+        
     %deletion criteria is 'n' (norm) or 'm' (minimax)
     psogp.deletion_criteria = deletionCriteria;
     

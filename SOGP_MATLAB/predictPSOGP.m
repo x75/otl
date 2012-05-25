@@ -11,34 +11,7 @@ function [ pred_mean, pred_var ] = predictPSOGP( x, psogp )
     
     k = getKStarVector(x, psogp);
     
-    if psogp.type == 'r'
-        pred_mean = k'*psogp.alpha;
-        pred_var = psogp.noise + kstar + k'*(psogp.C*k);
-    elseif psogp.type == 'c'
-        pred_mean = k'*psogp.alpha;
-        pred_var = psogp.noise + kstar + k'*(psogp.C*k);
-        
-        sx = sqrt((pred_var));
-        z = pred_mean/sx;
-        
-        Erfz = Erf(z);
-        
-        for i=1:size(Erfz,2)
-            if Erfz(:,i) > 0.5
-                pred_mean(:,i) = 1;
-            else
-                pred_mean(:,i) = -1;
-            end            
-        end
-        pred_mean;
+    pred_mean = k'*psogp.alpha;
+    pred_var = psogp.noise + kstar + k'*(psogp.C*k);
 
-        pred_var = Erfz;
-    end
     
-
-end
-
- function erfz = Erf(z)
-    erfz = normcdf(z,0,1);
- end
-
