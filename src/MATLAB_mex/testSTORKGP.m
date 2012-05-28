@@ -14,7 +14,7 @@ y_data_obs = y_data + normrnd(0,0.05,size(y_data));
 %Create out storkgp object and store the handle
 input_dim = 2;
 output_dim = 2;
-tau = 5; %how long is the method's memory
+tau = 3; %how long is the method's memory
 l = 1.0; %characteristic lengthscale of the GP
 rho = 0.99; %spectral radius (usually 0.9 to 0.99)
 alpha = 1.0; %scalar multipler for the kernel (usually 1.0)

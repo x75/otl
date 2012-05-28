@@ -98,8 +98,8 @@ void SOGP::train(const VectorXd &state, const VectorXd &output) {
         for (unsigned int i=0; i<this->output_dim; i++) {
             z(i) = mod_output(i) * m(i) / sx;
             Erfz(i) = stdnormcdf(z(i));
-            dErfz(i) = 1.0/sqrt(2*M_PI)*exp(-(z(i)*z(i))/2.0);
-            dErfz2(i) = dErfz(i)*(-z(i));
+            //dErfz(i) = 1.0/sqrt(2*M_PI)*exp(-(z(i)*z(i))/2.0);
+            //dErfz2(i) = dErfz(i)*(-z(i));
         }
 
         /*
