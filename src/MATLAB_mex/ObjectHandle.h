@@ -162,7 +162,7 @@ private: // prevent construction
 template <typename T>
 ObjectHandle<T>* ObjectHandle<T>::from_mex_handle(const mxArray* handle) 
 {
-	if (mxGetClassID(handle) != mxUINT64_CLASS 
+	if (mxGetClassID(handle) != POINTER_CLASS 
 		|| mxIsComplex(handle) || mxGetM(handle)!=1 || mxGetN(handle)!=1)
 		mexErrMsgTxt("Parameter is not an ObjectHandle type.");
 
@@ -190,7 +190,7 @@ ObjectHandle<T>* ObjectHandle<T>::from_mex_handle(const mxArray* handle)
 template <typename T>
 mxArray* ObjectHandle<T>::to_mex_handle() 
 {
-	mxArray* handle  = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
+	mxArray* handle  = mxCreateNumericMatrix(1, 1, POINTER_CLASS, mxREAL);
 	*reinterpret_cast<ObjectHandle<T>**>(mxGetPr(handle)) = this;
 	return handle;
 }
