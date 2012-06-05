@@ -7,6 +7,7 @@
     using Eigen::MatrixXd;
 %}
 
+%include "std_string.i"
 
 namespace Eigen {
 //convert a list to a Eigen VectorXd

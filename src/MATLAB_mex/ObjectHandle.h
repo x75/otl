@@ -19,6 +19,25 @@
 #include <typeinfo>
 #include <list>
 
+// Check windows
+#if _WIN32 || _WIN64
+#if _WIN64
+#define POINTER_CLASS mxUINT64_CLASS
+#else
+#define POINTER_CLASS mxUINT32_CLASS
+#endif
+#endif
+
+// Check GCC
+#if __GNUC__
+#if __x86_64__ || __ppc64__
+#define POINTER_CLASS mxUINT64_CLASS
+#else
+#define POINTER_CLASS mxUINT32_CLASS
+#endif
+#endif
+
+
 template<typename T> class Collector;
 
 

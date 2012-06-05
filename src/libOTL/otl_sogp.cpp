@@ -83,7 +83,7 @@ void SOGP::train(const VectorXd &state, const VectorXd &output) {
         s2 = 1e-12;
     }
 
-    double r;
+    double r = 0.0;
     VectorXd q;
 
     if (this->problem_type == SOGP::REGRESSION) {
