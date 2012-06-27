@@ -40,7 +40,7 @@ int main(void) {
     bool use_inputs_in_state = false;
 
     VectorXd kernel_parameters(2); //gaussian kernel parameters
-    kernel_parameters << 1.0, 1.0; //l = 1.0, sigma = 1.0
+    kernel_parameters << 1.0, 1.0; //l = 1.0, alpha = 1.0
 
     //SOGP parameters
     double noise = 0.01;
