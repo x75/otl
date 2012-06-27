@@ -1,0 +1,6 @@
+OTL Doxygen-generated Documentation
+
+If you don't see a html directory (the documentation), be sure to specify the correct flags when using cmake (-DBUILD_DOCS=ON) and typing:
+
+make doc
+
