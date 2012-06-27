@@ -1,6 +1,6 @@
-%STORKGP Example MATLAB script
-% This sample script shows how to use the STORKGP MATLAB class. Remember,
-% first you have to compile STORKGP using the compileSTORKGP_mex.m script.
+%OESGP Example MATLAB script
+% This sample script shows how to use the OESGP MATLAB class. Remember,
+% first you have to compile OESGP using the compileOESGP_mex.m script.
 % Edit it to point to the correct directories (if necessary) and run it. 
 %
 % In this example, we'll just create a simple combination of sine and cos 
@@ -19,19 +19,19 @@ y_data = [x_data(:,1) + x_data(:,2), 0.5*x_data(:,2) - 0.5*x_data(:,1)];
 y_data = y_data(future_step:end,: ); 
 y_data_obs = y_data + normrnd(0,0.05,size(y_data));
 
-%Create out storkgp object and store the handle
+%Create out oesgp object and store the handle
 input_dim = 2;
 output_dim = 2;
 
-reservoir_size = 100;
-input_weight = 1.0;
-output_feedback_weight = 0;
-activation_function = 'TANH';
-leak_rate = 0.0;
-connectivity = 0.1;
-spectral_radius = 0.99;
-use_inputs_in_state= false;
-random_seed = 10;
+reservoir_size = 100; %the reservoir size?
+input_weight = 1.0; %input weight, usually 1.0
+output_feedback_weight = 0; %usually, we don't use output feedback
+activation_function = 'TANH'; %tanh activation function
+leak_rate = 0.0; %no leak rate here, (between 0 and 1.0)
+connectivity = 0.1; %connectivity of the reservoir
+spectral_radius = 0.99; %spectral radius (typically 0.9 - 0.99)
+use_inputs_in_state= false; %use the inputs directly? 
+random_seed = 10; %change the seed used to randomly create the reservoir
 
 l = 1.0; %characteristic lengthscale of the GP
 alpha = 1.0; %scalar multipler for the kernel (usually 1.0)
