@@ -4,6 +4,7 @@
 #include "otl.h"
 #include "otl_oesgp.h"
 #include <string>
+#include "ObjectHandle.h"
 
 using namespace OTL;
 
@@ -19,6 +20,10 @@ void mexFunction(int nlhs, mxArray *plhs[],
 	i_filename = mxArrayToString(prhs[1]);
     
     std::string filename(i_filename, buflen);
+	
+	ObjectHandle<OESGP>* handle = 
+		ObjectHandle<OESGP>::from_mex_handle(prhs[0]);
+	handle->get_object().load(filename);
     
     
     mxFree(i_filename);

@@ -68,6 +68,19 @@ classdef STORKGP < handle
             updateSTORKGP(storkgp.sogp, x);
             
         end
+
+        function save( storkgp, filename)
+            %resetState resets the memory state of the OESGP model.
+            %NOTE: this does not reset the entire model, just the memory.
+            saveSTORKGP(storkgp.sogp, filename);
+        end
+
+        function load( storkgp, filename)
+            %resetState resets the memory state of the OESGP model.
+            %NOTE: this does not reset the entire model, just the memory.
+            loadSTORKGP(storkgp.sogp, filename);
+        end
+
         
         function resetState( storkgp)
             %resetState resets the memory state of the STORKGP model.

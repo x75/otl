@@ -44,7 +44,7 @@ capacity = 100; %capacity of the model (how many basis vectors you
 
 kernel_parameters = [l, alpha];
 
-%create our STORKGP object
+%create our OESGP object
 oesgp = OESGP(input_dim, output_dim, reservoir_size,...
                     input_weight, output_feedback_weight,...
                     activation_function,...
@@ -72,8 +72,13 @@ for i=1:N-future_step
 end
 
 %if you want to RESET the memory state of the model, you can use:
-%storkgp.resetState(); %this does not reset the model, just the "memory".
+%oesgp.resetState(); %this does not reset the model, just the "memory".
 
+%if you want to save the model
+oesgp.save('oesgptest1');
+
+%loading a saved model is easy:
+%oesgp.load('oesgptest');
 
 %plots
 figure();
@@ -92,6 +97,7 @@ subplot(3,1,3);
 plot(error, 'r');
 ylabel('Errors');
 xlabel('Time');
+
 
 
 %destroy the object we created, using clear() would do it too

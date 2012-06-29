@@ -59,6 +59,11 @@ end
 %if you want to RESET the memory state of the model, you can use:
 %storkgp.resetState(); %this does not reset the model, just the "memory".
 
+%if you want to save the model
+storkgp.save('storkgptest');
+
+%loading a saved model is easy:
+%storkgp.load('storkgptest');
 
 %plots
 figure();

@@ -89,7 +89,20 @@ classdef OESGP < handle
             updateOESGP(oesgp.sogp, x);
             
         end
-        
+       
+        function save( oesgp, filename)
+            %resetState resets the memory state of the OESGP model.
+            %NOTE: this does not reset the entire model, just the memory.
+            saveOESGP(oesgp.sogp, filename);
+        end
+
+        function load( oesgp, filename)
+            %resetState resets the memory state of the OESGP model.
+            %NOTE: this does not reset the entire model, just the memory.
+            loadOESGP(oesgp.sogp, filename);
+        end
+
+ 
         function resetState( oesgp)
             %resetState resets the memory state of the OESGP model.
             %NOTE: this does not reset the entire model, just the memory.
