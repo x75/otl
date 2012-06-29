@@ -20,7 +20,9 @@ void mexFunction(int nlhs, mxArray *plhs[],
     
     std::string filename(i_filename, buflen);
     
-    
+	ObjectHandle<STORKGP>* handle = 
+	ObjectHandle<STORKGP>::from_mex_handle(prhs[0]);
+	handle->get_object().load(filename);
     
     
     mxFree(i_filename);
