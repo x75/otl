@@ -75,7 +75,7 @@ end
 %oesgp.resetState(); %this does not reset the model, just the "memory".
 
 %if you want to save the model
-oesgp.save('oesgptest1');
+oesgp.save('oesgptest');
 
 %loading a saved model is easy:
 %oesgp.load('oesgptest');

@@ -14,7 +14,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
     char *i_filename;
     
 
-    int buflen = (mxGetM(prhs[1]) * mxGetN(prhs[1])) + 1;
+    int buflen = (mxGetM(prhs[1]) * mxGetN(prhs[1]));
     
 	i_oesgp_object = mxGetPr(prhs[0]);
 	i_filename = mxArrayToString(prhs[1]);

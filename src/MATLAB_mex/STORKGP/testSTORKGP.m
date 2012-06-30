@@ -62,9 +62,6 @@ end
 %if you want to save the model
 storkgp.save('storkgptest');
 
-%loading a saved model is easy:
-%storkgp.load('storkgptest');
-
 %plots
 figure();
 subplot(3,1,1);
