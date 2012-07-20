@@ -28,17 +28,19 @@ void RecursiveGaussianKernel::init(const unsigned int state_dim, const VectorXd 
     this->state_dim = state_dim;
     unsigned int end = parameters.rows() - 1;
     this->input_dim = floor(parameters(end) + 0.5);
-
+    //std::cout << "input_dim: " << this->input_dim << std::endl;
     //set up the parameters
-    if (parameters.rows() == input_dim + 3 ) {
-        this->b = parameters.segment(0, input_dim);
-        this->rho = parameters(input_dim);
-        this->alpha = parameters(input_dim+1);
-    } if (parameters.rows() == 4) {
+    //std::cout << "numer of parameters: " << parameters.rows() << std::endl;
+    if (parameters.rows() == (this->input_dim + 3) ) {
+        this->b = parameters.segment(0, this->input_dim);
+        this->rho = parameters(this->input_dim);
+        this->alpha = parameters(this->input_dim+1);
+    } else if (parameters.rows() == 4) {
         this->b = VectorXd::Ones(input_dim)*parameters(0);
         this->rho = parameters(1);
         this->alpha = parameters(2);
     } else {
+        //std::cout << "parameter vector is wrong size" << std::endl;
         throw OTLException("parameters vector is the wrong size!");
     }
 
@@ -46,6 +48,7 @@ void RecursiveGaussianKernel::init(const unsigned int state_dim, const VectorXd 
     for (unsigned int i=0; i<input_dim; i++) {
         this->b(i) = 1.0/(2*(this->b(i)*this->b(i)));
         if (std::isnan(this->b(i)) || std::isinf(this->b(i))) {
+            //std::cout << "parameter resulted in nan" << std::endl;
             throw OTLException("Whoops. The lengthscale resulted"
                                "in a nan or an inf");
         }
@@ -146,9 +149,9 @@ double RecursiveGaussianKernel::eval(const VectorXd &x, const VectorXd &y) {
         for (unsigned int j=0; j<this->input_dim; j++) {
             val += diffxy(j)*diffxy(j)*b(j);
         }
-        kval = this->alpha*exp(-val)*exp( (kval - 1)/this->rho );
+        kval = exp(-val)*exp( (kval - 1)/this->rho );
     }
-    return kval;
+    return alpha*kval;
 }
 
 void RecursiveGaussianKernel::eval(const VectorXd &x, const std::vector<VectorXd> &Y,

@@ -34,7 +34,7 @@ void RecursiveEqualityGaussianKernel::init(const unsigned int state_dim, const V
         this->b = parameters.segment(0, input_dim);
         this->rho = parameters(input_dim);
         this->alpha = parameters(input_dim+1);
-    } if (parameters.rows() == 4) {
+    } else if (parameters.rows() == 4) {
         this->b = VectorXd::Ones(input_dim)*parameters(0);
         this->rho = parameters(1);
         this->alpha = parameters(2);

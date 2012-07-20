@@ -19,6 +19,7 @@ namespace Eigen {
 	}
 
 	VectorXd *temp = new VectorXd(length);
+
     for (int i=0; i<length; i++) {
 		(*temp)[i] = PyFloat_AsDouble(PyList_GetItem($input, i));
 	}

@@ -29,7 +29,7 @@ void GaussianKernel::init(const unsigned int state_dim, const VectorXd &paramete
     if (parameters.rows() == state_dim + 1 ) {
         this->b = parameters.segment(0, state_dim);
         this->alpha = parameters(state_dim);
-    } if (parameters.rows() == 2) {
+    } else if (parameters.rows() == 2) {
         this->b = VectorXd::Ones(state_dim)*parameters(0);
         this->alpha = parameters(1);
     } else {
