@@ -1,6 +1,5 @@
 #include "mex.h" 
 
-#include <iostream>
 #include "otl.h"
 #include "otl_storkgp.h"
 #include "ObjectHandle.h"
