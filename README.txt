@@ -4,19 +4,34 @@ haroldsoh@gmail.com
 haroldsoh@imperial.ac.uk
 
 == Introduction ==
-The Online Temporal Learning (OTL) C++ library implements several memory structures (a neural reservoir and sliding window) and online learning methods (RLS, Sparse Online Gaussian Process). Included in the library are two "high-level" online learning methods: the Online Echo State Gaussian Process (OESGP) and the Spatial-Temporal Online Recursive Kernel Gaussian Process (STORK-GP). Academic papers detailing these methods:
+The Online Temporal Learning (OTL) C++ library implements several memory structures (a neural reservoir and sliding window) and online learning methods (RLS, Sparse Online Gaussian Process). Included in the library are two "high-level" online learning methods: the Online Echo State Gaussian Process (OESGP) and the Online Infinite Echo-State GP (also called the Spatial-Temporal Online Recursive Kernel Gaussian Process (STORK-GP)). Academic papers detailing these methods:
 
 OESGP: H. Soh and Y. Demiris, “Iterative Temporal Learning and Prediction with the Sparse Online Echo State Gaussian Process”, International Joint Conference on Neural Networks (IJCNN-2012), Brisbane, Australia (to appear) 
 
 STORKGP: H. Soh and Y. Demiris, "Iteratively Learning to Classify Objects by Touch with Online Spatio-Temporal Experts", Under Review. Contact me for a pre-print. 
 
-OTL currently in pre-alpha; it works but documentation is still sorely lacking. Check out the Getting Started Guides for using the high-level methods (OESGP and STORKGP). Example code is within the src/examples directory. I've tried to make it easy to do the standard thing, i.e., learn from and predict sequential time-series data. If that's what you're trying to accomplish, it should be relatively easy to get things going. 
+There are TWO versions of code included:
 
-That said, at its current state, OTL is meant for use by individuals familiar with C++/Python programming on a *nix environment. Feel free to give it a shot and I'll be happy to answer questions via email. However, please note that depending my workload, answers may be *very* slow in coming. 
+1. Matlab OTL (in the otl_matlab directory) is a pure MATLAB implementation (with some mex code to speed up some operations). It contains the latest code including some prototype code. 
+
+2. C++ OTL version a slightly lagged version of the Matlab code. It's less up-to-date but much faster than the MATLAB implementation. Check out the Getting Started Guides for using the high-level methods. Example code is within the src/examples directory. I've tried to make it easy to do the standard thing, i.e., learn from and predict sequential time-series data. If that's what you're trying to accomplish, it should be relatively easy to get things going. 
+
+At its current state, OTL is meant for use by individuals familiar with C++/Python/MATLAB programming on a *nix environment. Feel free to give it a shot and I'll be happy to answer questions via email. However, please note that depending my workload, answers may be *very* slow in coming. 
 
 Have fun! For more up-to-date information, refer to the OTL wiki: https://bitbucket.org/haroldsoh/otl/wiki/Home
 
-== Pre-requisites ==
+== MATLAB OTL ==
+
+The MATLAB code is in otl_matlab. You will need to:
+
+1. Set up the paths: Run setupOTL.m
+2. Compile the helper mex files: Run compileHelpers.m
+
+That's it! Have a look in examples (particularly NoisySin_FMemOGP2_Opt.m for a full-fledged example).
+
+== C++ OTL ==
+
+=== Pre-requisites ===
 OTL requires the Eigen C++ Matrix library and cmake. It also needs SWIG for the Python bindings. You can download Eigen at http://eigen.tuxfamily.org. 
 
 If you're using Ubuntu, you can install these pre-reqs using apt-get:
@@ -25,7 +40,7 @@ sudo apt-get install libeigen3-dev cmake swig
 
 or using the Software Center.
 
-== Installation ==
+=== Installation ===
 Clone the repository using:
 
 hg clone ssh://hg@bitbucket.org/haroldsoh/otl
@@ -40,7 +55,7 @@ make
 
 Everything should compile and you should have a libOTL.a library file. 
 
-== Options: Python Bindings and Doxygen Documentation ==
+=== Options: Python Bindings and Doxygen Documentation ===
 If you want the Python bindings and the Doxygen generated documentation, please turn on the appropriate option:
 
 cmake ../ -DBUILD_PYTHON_BINDINGS=ON -DBUILD_DOCS=ON
@@ -54,10 +69,10 @@ To use these bindings, head to the src/MATLAB_mex directory.
 Fire up MATLAB and edit the compileSTORKGP_mex.m file. Run it. 
 You should then be able to use the mex files. 
 
-== Getting Started Guides ==
+=== Getting Started Guides ===
 For the getting started guides, please refer to the OTL Wiki: https://bitbucket.org/haroldsoh/otl/wiki/Home
 
-== Usage and License ==
+=== Usage and License ===
 This code is DUAL-LICENSED. 
 
 If you are using this code in non-commercial settings, e.g.,  at academic institutions, teaching institutes or for hobby, learning and research: you can use this code freely, i.e., make copies, distribute and modify the code for any non-commercial purpose provided the original license and this copyright notice are included. If you do use this code in your research, please cite:
