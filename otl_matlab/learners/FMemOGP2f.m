@@ -671,12 +671,12 @@ pmgp.reset = @reset;
 
                        
             if pm_dK_valid(th) == 0
-                pm_dK{th} = feval(pm_covf{:},pm_covf_params, X, X, th);
+                pm_dK{th} = [];%feval(pm_covf{:},pm_covf_params, X, X, th);
                 pm_dK_valid(th) = 1;
             end
             
             if size(alpha,1) ~= size(pm_dK{th},1)
-                pm_dK{th} = feval(pm_covf{:},pm_covf_params, X, X, th);
+                pm_dK{th} = []; %feval(pm_covf{:},pm_covf_params, X, X, th);
                 pm_dK_valid(th) = 1;
             end
             
@@ -705,16 +705,16 @@ pmgp.reset = @reset;
                 %size(dKss)
                 %size(alpha)
                 %size(pm_dK{th})
-                du_dth = dKss'*alpha(:,i) +  Kss'*Kinv*pm_dK{th}*alpha(:,i);
+                %du_dth = dKss'*alpha(:,i) +  Kss'*Kinv*pm_dK{th}*alpha(:,i);
+                du_dth = dKss'*alpha(:,i);
                 %du_dth = dKss'*alpha(:,i) +  Kss'*Kinv*dK*alpha(:,i);
                 ds2_dth = 0;
                 if pm_lik_mode == 'p'
-                    ds2_dth = dks - ...
-                        (dKss'*KinvKss - ...
-                        Kss'*(Kinv*(pm_dK{th}*KinvKss)) + ...
-                        Kss'*(Kinv*dKss));
-
-
+%                     ds2_dth = dks - ...
+%                         (dKss'*KinvKss - ...
+%                         Kss'*(Kinv*(pm_dK{th}*KinvKss)) + ...
+%                         Kss'*(Kinv*dKss));
+                    ds2_dth = dks + 2*KinvKss'*dKss;
                 end
                 
                 dpy_dth(i,th) = dp_du*du_dth + dp_ds2*ds2_dth;

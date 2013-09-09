@@ -10,14 +10,14 @@ clear();
 
 s = RandStream('mcg16807','Seed',0);
 RandStream.setGlobalStream(s);
-do_update_plot = false;
+do_update_plot = true;
 do_final_plot = true;
 debug_mode = false;
 
 %problem parameters
-n_extra_useless_dimensions = 2; %to test the ARD
+n_extra_useless_dimensions = 10; %to test the ARD
 noise = sqrt(0.01);
-N = 2000;
+N = 5000;
 dt = 0.05; %time difference
 
 %optimisation parameters
@@ -36,7 +36,7 @@ x_dim = n_extra_useless_dimensions + 1;
 y_dim = 1;
 
 %first specify our parametres
-capacity = 200;       %30 basis vectors
+capacity = 50;       %30 basis vectors
 gp_noise = noise;      %prior noise of 0.1
 epsilon = 1e-5;     %tolerance parameter
 
