@@ -8,8 +8,8 @@
 %% Experimental parameters
 clear();
 
-s = RandStream('mcg16807','Seed',0);
-RandStream.setGlobalStream(s);
+% s = RandStream('mcg16807','Seed',0);
+% RandStream.setGlobalStream(s);
 do_update_plot = true;
 do_final_plot = true;
 debug_mode = false;
